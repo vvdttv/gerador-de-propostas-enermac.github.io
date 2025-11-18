@@ -13,7 +13,7 @@ interface Props {
 }
 
 const LIVESTOCK_TYPES = {
-  'Suíno': ['Crechário (Lâmina d\'água)', 'Terminação/Maraã'],
+  'Suíno': ['Matriz', 'Crechário (Lâmina d\'água)', 'Terminação/Maraã'],
   'Bovino': ['Matriz UPD', 'Terminação Confinamento'],
   'Aves': ['Poedeira', 'Frango de Corte']
 };
@@ -290,21 +290,6 @@ export function TechnicalDataForm({ data, onChange }: Props) {
               Distância em metros da propriedade até a entrada de energia (R$ 500,00 por metro)
             </p>
           </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="state">Estado (Local do Projeto) *</Label>
-          <Input
-            id="state"
-            type="text"
-            value={data.state || ''}
-            onChange={(e) => handleChange('state', e.target.value)}
-            placeholder="Ex: São Paulo"
-            required
-          />
-          <p className="text-sm text-muted-foreground">
-            Estado onde o projeto será implementado
-          </p>
         </div>
       </div>
     </div>

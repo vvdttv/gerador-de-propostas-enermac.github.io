@@ -5,6 +5,10 @@ const LIVESTOCK_DATA: Record<string, {
   biogasPerM3: number;
   investmentPerKw: number;
 }> = {
+  'Suíno-Matriz': {
+    biogasPerM3: 0.016,
+    investmentPerKw: 8500
+  },
   'Suíno-Crechário (Lâmina d\'água)': {
     biogasPerM3: 0.007,
     investmentPerKw: 8500
@@ -192,6 +196,23 @@ export function calculateProposal(
     isViable = false;
   }
 
+  // Determinar rota tecnológica
+  let technologicalRoute = '';
+  const hasLivestock = technical.livestockComposition.length > 0;
+  const hasSubstrates = technical.otherSubstrates.length > 0;
+  
+  if (hasLivestock && !hasSubstrates) {
+    const livestockTypes = technical.livestockComposition.map(l => l.type).join(', ');
+    technologicalRoute = `Biodigestão anaeróbia de dejetos animais (${livestockTypes}). Esta rota é ideal para aproveitamento de resíduos orgânicos da pecuária, transformando um passivo ambiental em energia limpa. O sistema converte dejetos em biogás através de digestão anaeróbia, gerando energia elétrica via gerador acoplado e biofertilizante como subproduto.`;
+  } else if (!hasLivestock && hasSubstrates) {
+    const substrateTypes = technical.otherSubstrates.map(s => s.type).join(', ');
+    technologicalRoute = `Biodigestão anaeróbia de resíduos sólidos (${substrateTypes}). Sistema projetado para tratamento de resíduos orgânicos urbanos e industriais, convertendo-os em biogás para geração de energia elétrica. Solução sustentável que combina destinação adequada de resíduos com produção energética.`;
+  } else if (hasLivestock && hasSubstrates) {
+    technologicalRoute = `Codigestão anaeróbia combinando dejetos animais e resíduos sólidos orgânicos. Esta rota tecnológica otimiza a produção de biogás através da sinergia entre diferentes substratos, aumentando a eficiência do processo e a geração de energia. Sistema integrado que maximiza o aproveitamento dos recursos disponíveis na propriedade.`;
+  } else {
+    technologicalRoute = `Sistema de biodigestão anaeróbia para conversão de resíduos orgânicos em energia renovável.`;
+  }
+
   return {
     totalInvestment,
     downPayment,
@@ -211,6 +232,7 @@ export function calculateProposal(
       gridDistanceCost
     },
     isViable,
-    viabilityIssues
+    viabilityIssues,
+    technologicalRoute
   };
 }
