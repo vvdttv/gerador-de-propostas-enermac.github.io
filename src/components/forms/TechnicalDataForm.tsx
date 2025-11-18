@@ -3,12 +3,22 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2 } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Plus, Trash2, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Props {
   data: TechnicalData;
   onChange: (data: TechnicalData) => void;
 }
+
+const LIVESTOCK_TYPES = {
+  'Suíno': ['Crechário (Lâmina d\'água)', 'Terminação/Maraã'],
+  'Bovino': ['Matriz UPD', 'Terminação Confinamento'],
+  'Aves': ['Poedeira', 'Frango de Corte']
+};
+
+const OTHER_SUBSTRATES = ['RSO', 'RSU'];
 
 export function TechnicalDataForm({ data, onChange }: Props) {
   const handleChange = (field: keyof TechnicalData, value: any) => {
@@ -32,7 +42,11 @@ export function TechnicalDataForm({ data, onChange }: Props) {
 
   const updateLivestock = (index: number, field: keyof LivestockComposition, value: any) => {
     const updated = [...data.livestockComposition];
-    updated[index] = { ...updated[index], [field]: value };
+    if (field === 'type') {
+      updated[index] = { ...updated[index], type: value, class: '' };
+    } else {
+      updated[index] = { ...updated[index], [field]: value };
+    }
     handleChange('livestockComposition', updated);
   };
 
@@ -40,7 +54,7 @@ export function TechnicalDataForm({ data, onChange }: Props) {
     const newSubstrate: OtherSubstrate = {
       type: '',
       volume: 0,
-      unit: 'm³'
+      unit: 't/dia'
     };
     handleChange('otherSubstrates', [...data.otherSubstrates, newSubstrate]);
   };
@@ -64,25 +78,6 @@ export function TechnicalDataForm({ data, onChange }: Props) {
       </div>
 
       <div className="grid gap-6">
-        <div className="space-y-2">
-          <Label htmlFor="substrate">Tipo de Substrato Principal *</Label>
-          <Select
-            value={data.substrate}
-            onValueChange={(value) => handleChange('substrate', value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione o tipo de substrato" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="suino">Suíno (Dejetos)</SelectItem>
-              <SelectItem value="bovino">Bovino (Matriz UPD)</SelectItem>
-              <SelectItem value="rso">RSO (Resíduos Sólidos Orgânicos)</SelectItem>
-              <SelectItem value="aves">Aves (Cama de Frango)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Composição do Plantel */}
         <div className="space-y-4 p-4 bg-secondary/10 rounded-lg border">
           <div className="flex justify-between items-center">
             <h3 className="font-semibold text-lg">Composição do Plantel</h3>
@@ -91,6 +86,15 @@ export function TechnicalDataForm({ data, onChange }: Props) {
               Adicionar
             </Button>
           </div>
+          
+          {data.livestockComposition.length === 0 && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Adicione pelo menos uma composição de plantel para dimensionar o sistema.
+              </AlertDescription>
+            </Alert>
+          )}
           
           {data.livestockComposition.map((livestock, index) => (
             <div key={index} className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 bg-background rounded border">
@@ -104,21 +108,29 @@ export function TechnicalDataForm({ data, onChange }: Props) {
                     <SelectValue placeholder="Tipo" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="suino">Suíno</SelectItem>
-                    <SelectItem value="bovino">Bovino</SelectItem>
-                    <SelectItem value="aves">Aves</SelectItem>
-                    <SelectItem value="outros">Outros</SelectItem>
+                    {Object.keys(LIVESTOCK_TYPES).map((type) => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               
               <div className="space-y-2">
                 <Label>Classe *</Label>
-                <Input
+                <Select
                   value={livestock.class}
-                  onChange={(e) => updateLivestock(index, 'class', e.target.value)}
-                  placeholder="Ex: Terminação"
-                />
+                  onValueChange={(value) => updateLivestock(index, 'class', value)}
+                  disabled={!livestock.type}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Classe" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {livestock.type && LIVESTOCK_TYPES[livestock.type as keyof typeof LIVESTOCK_TYPES]?.map((cls) => (
+                      <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="space-y-2">
@@ -127,27 +139,29 @@ export function TechnicalDataForm({ data, onChange }: Props) {
                   type="number"
                   min="0"
                   value={livestock.quantity || ''}
-                  onChange={(e) => updateLivestock(index, 'quantity', parseFloat(e.target.value) || 0)}
-                  placeholder="0"
+                  onChange={(e) => updateLivestock(index, 'quantity', parseInt(e.target.value) || 0)}
+                  placeholder="Ex: 100"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label>Tempo Confinamento (dias) *</Label>
+                <Label>Tempo Confinamento (h) *</Label>
                 <Input
                   type="number"
                   min="0"
+                  max="24"
+                  step="0.1"
                   value={livestock.confinementTime || ''}
                   onChange={(e) => updateLivestock(index, 'confinementTime', parseFloat(e.target.value) || 0)}
-                  placeholder="0"
+                  placeholder="Ex: 18"
                 />
               </div>
               
               <div className="flex items-end">
                 <Button
                   onClick={() => removeLivestock(index)}
-                  size="sm"
                   variant="destructive"
+                  size="sm"
                   className="w-full"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -157,7 +171,6 @@ export function TechnicalDataForm({ data, onChange }: Props) {
           ))}
         </div>
 
-        {/* Outros Substratos */}
         <div className="space-y-4 p-4 bg-secondary/10 rounded-lg border">
           <div className="flex justify-between items-center">
             <h3 className="font-semibold text-lg">Outros Substratos</h3>
@@ -168,50 +181,41 @@ export function TechnicalDataForm({ data, onChange }: Props) {
           </div>
           
           {data.otherSubstrates.map((substrate, index) => (
-            <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-background rounded border">
+            <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-background rounded border">
               <div className="space-y-2">
                 <Label>Tipo *</Label>
-                <Input
+                <Select
                   value={substrate.type}
-                  onChange={(e) => updateSubstrate(index, 'type', e.target.value)}
-                  placeholder="Ex: Silagem de milho"
-                />
+                  onValueChange={(value) => updateSubstrate(index, 'type', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tipo de substrato" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {OTHER_SUBSTRATES.map((type) => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="space-y-2">
-                <Label>Volume *</Label>
+                <Label>Peso Gerado por Dia (t/dia) *</Label>
                 <Input
                   type="number"
                   min="0"
-                  step="0.1"
+                  step="0.01"
                   value={substrate.volume || ''}
                   onChange={(e) => updateSubstrate(index, 'volume', parseFloat(e.target.value) || 0)}
-                  placeholder="0"
+                  placeholder="Ex: 2.5"
                 />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Unidade *</Label>
-                <Select
-                  value={substrate.unit}
-                  onValueChange={(value) => updateSubstrate(index, 'unit', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="m³">m³</SelectItem>
-                    <SelectItem value="ton">Toneladas</SelectItem>
-                    <SelectItem value="kg">Kg</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
               
               <div className="flex items-end">
                 <Button
                   onClick={() => removeSubstrate(index)}
-                  size="sm"
                   variant="destructive"
+                  size="sm"
                   className="w-full"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -221,111 +225,65 @@ export function TechnicalDataForm({ data, onChange }: Props) {
           ))}
         </div>
 
-        {/* Consumo de Energia */}
-        <div className="space-y-2">
-          <Label htmlFor="monthlyEnergyConsumption">Consumo Mensal de Energia (kWh) *</Label>
-          <Input
-            id="monthlyEnergyConsumption"
-            type="number"
-            min="0"
-            step="1"
-            value={data.monthlyEnergyConsumption || ''}
-            onChange={(e) => handleChange('monthlyEnergyConsumption', parseFloat(e.target.value) || 0)}
-            placeholder="Ex: 5000"
-            required
-          />
-          <p className="text-sm text-muted-foreground">
-            Consumo médio mensal atual de energia elétrica
-          </p>
-        </div>
+        <div className="space-y-4 p-4 bg-secondary/10 rounded-lg border">
+          <h3 className="font-semibold text-lg">Infraestrutura Elétrica</h3>
+          
+          <div className="space-y-3">
+            <Label>Possui rede elétrica trifásica? *</Label>
+            <RadioGroup
+              value={data.hasThreePhaseGrid ? 'sim' : 'nao'}
+              onValueChange={(value) => handleChange('hasThreePhaseGrid', value === 'sim')}
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="sim" id="sim" />
+                <Label htmlFor="sim" className="font-normal cursor-pointer">Sim</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="nao" id="nao" />
+                <Label htmlFor="nao" className="font-normal cursor-pointer">Não</Label>
+              </div>
+            </RadioGroup>
+            
+            {!data.hasThreePhaseGrid && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Será necessário adaptar a rede elétrica. Custo estimado: R$ 20.000,00
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
 
-        {/* Rede Elétrica Trifásica */}
-        <div className="space-y-2">
-          <Label>Possui Rede Elétrica Trifásica? *</Label>
-          <Select
-            value={data.hasThreePhaseGrid ? 'sim' : 'nao'}
-            onValueChange={(value) => handleChange('hasThreePhaseGrid', value === 'sim')}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="sim">Sim</SelectItem>
-              <SelectItem value="nao">Não</SelectItem>
-            </SelectContent>
-          </Select>
-          {!data.hasThreePhaseGrid && (
-            <p className="text-sm text-amber-600">
-              ⚠️ Será necessário incluir custo de adaptação da rede elétrica para trifásica
+          <div className="space-y-2">
+            <Label htmlFor="gridDistance">Distância da Entrada de Energia (metros) *</Label>
+            <Input
+              id="gridDistance"
+              type="number"
+              min="0"
+              step="1"
+              value={data.gridDistance || ''}
+              onChange={(e) => handleChange('gridDistance', parseFloat(e.target.value) || 0)}
+              placeholder="Ex: 50"
+              required
+            />
+            <p className="text-sm text-muted-foreground">
+              Distância em metros da propriedade até a entrada de energia (R$ 500,00 por metro)
             </p>
-          )}
+          </div>
         </div>
 
-        {/* Distância da Entrada de Energia */}
-        <div className="space-y-2">
-          <Label htmlFor="gridDistance">Distância da Entrada de Energia (metros) *</Label>
-          <Input
-            id="gridDistance"
-            type="number"
-            min="0"
-            step="1"
-            value={data.gridDistance || ''}
-            onChange={(e) => handleChange('gridDistance', parseFloat(e.target.value) || 0)}
-            placeholder="Ex: 50"
-            required
-          />
-          <p className="text-sm text-muted-foreground">
-            Distância em metros até o ponto de entrada de energia
-          </p>
-        </div>
-
-        {/* Estado do Projeto */}
         <div className="space-y-2">
           <Label htmlFor="state">Estado (Local do Projeto) *</Label>
-          <Select
-            value={data.state}
-            onValueChange={(value) => handleChange('state', value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione o estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="AC">Acre</SelectItem>
-              <SelectItem value="AL">Alagoas</SelectItem>
-              <SelectItem value="AP">Amapá</SelectItem>
-              <SelectItem value="AM">Amazonas</SelectItem>
-              <SelectItem value="BA">Bahia</SelectItem>
-              <SelectItem value="CE">Ceará</SelectItem>
-              <SelectItem value="DF">Distrito Federal</SelectItem>
-              <SelectItem value="ES">Espírito Santo</SelectItem>
-              <SelectItem value="GO">Goiás</SelectItem>
-              <SelectItem value="MA">Maranhão</SelectItem>
-              <SelectItem value="MT">Mato Grosso</SelectItem>
-              <SelectItem value="MS">Mato Grosso do Sul</SelectItem>
-              <SelectItem value="MG">Minas Gerais</SelectItem>
-              <SelectItem value="PA">Pará</SelectItem>
-              <SelectItem value="PB">Paraíba</SelectItem>
-              <SelectItem value="PR">Paraná</SelectItem>
-              <SelectItem value="PE">Pernambuco</SelectItem>
-              <SelectItem value="PI">Piauí</SelectItem>
-              <SelectItem value="RJ">Rio de Janeiro</SelectItem>
-              <SelectItem value="RN">Rio Grande do Norte</SelectItem>
-              <SelectItem value="RS">Rio Grande do Sul</SelectItem>
-              <SelectItem value="RO">Rondônia</SelectItem>
-              <SelectItem value="RR">Roraima</SelectItem>
-              <SelectItem value="SC">Santa Catarina</SelectItem>
-              <SelectItem value="SP">São Paulo</SelectItem>
-              <SelectItem value="SE">Sergipe</SelectItem>
-              <SelectItem value="TO">Tocantins</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-          <h3 className="font-semibold mb-2 text-primary">Informação Importante</h3>
+          <Input
+            id="state"
+            type="text"
+            value={data.state || ''}
+            onChange={(e) => handleChange('state', e.target.value)}
+            placeholder="Ex: São Paulo"
+            required
+          />
           <p className="text-sm text-muted-foreground">
-            O sistema calculará automaticamente a produção de biogás, energia gerada e o dimensionamento 
-            ideal do biodigestor baseado nos dados fornecidos.
+            Estado onde o projeto será implementado
           </p>
         </div>
       </div>

@@ -16,7 +16,7 @@ export function CurrentCostsForm({ data, onChange }: Props) {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold mb-2">Custos Atuais</h2>
-        <p className="text-muted-foreground">Gastos mensais do cliente com energia e combustível</p>
+        <p className="text-muted-foreground">Gastos mensais do cliente com energia</p>
       </div>
 
       <div className="grid gap-6">
@@ -54,42 +54,6 @@ export function CurrentCostsForm({ data, onChange }: Props) {
             />
             <p className="text-sm text-muted-foreground">
               Consumo médio mensal de energia elétrica
-            </p>
-          </div>
-        </div>
-
-        <div className="space-y-4 p-4 bg-secondary/30 rounded-lg border">
-          <h3 className="font-semibold text-lg">Combustível (Opcional)</h3>
-          
-          <div className="space-y-2">
-            <Label htmlFor="fuelCostLiter">Custo do Litro (R$)</Label>
-            <Input
-              id="fuelCostLiter"
-              type="number"
-              min="0"
-              step="0.01"
-              value={data.fuelCostLiter || ''}
-              onChange={(e) => handleChange('fuelCostLiter', parseFloat(e.target.value) || 0)}
-              placeholder="Ex: 6.15"
-            />
-            <p className="text-sm text-muted-foreground">
-              Valor pago por litro de diesel/gasolina
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="monthlyFuelConsumption">Consumo Mensal (Litros)</Label>
-            <Input
-              id="monthlyFuelConsumption"
-              type="number"
-              min="0"
-              step="1"
-              value={data.monthlyFuelConsumption || ''}
-              onChange={(e) => handleChange('monthlyFuelConsumption', parseFloat(e.target.value) || 0)}
-              placeholder="Ex: 1000"
-            />
-            <p className="text-sm text-muted-foreground">
-              Consumo médio mensal de combustível
             </p>
           </div>
         </div>

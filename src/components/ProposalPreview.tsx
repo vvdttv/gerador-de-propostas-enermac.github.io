@@ -134,7 +134,7 @@ export function ProposalPreview({ client, calculations, financial }: Props) {
 
           <div className="flex justify-between items-center p-3 bg-secondary/30 rounded">
             <span className="font-semibold">Taxa de Juros:</span>
-            <span className="text-lg">{formatNumber(financial.interestRate)}% ao ano</span>
+            <span className="text-lg">{formatNumber(financial.monthlyInterestRate)}% ao mês ({financial.interestType === 'simple' ? 'Juros Simples' : 'Juros Compostos'})</span>
           </div>
         </div>
       </Card>

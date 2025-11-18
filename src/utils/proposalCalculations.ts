@@ -1,56 +1,118 @@
 import { CurrentCosts, FinancialConfig, TechnicalData, ProposalCalculations } from '@/types/proposal';
 
-const SUBSTRATE_DATA: Record<string, {
+// Dados de produção de biogás por animal (m³/dia por animal em confinamento completo - 24h)
+const LIVESTOCK_DATA: Record<string, {
   biogasPerM3: number;
-  kwhPerM3Biogas: number;
   investmentPerKw: number;
 }> = {
-  'suino': {
+  'Suíno-Crechário (Lâmina d\'água)': {
     biogasPerM3: 0.007,
-    kwhPerM3Biogas: 2.0,
     investmentPerKw: 8500
   },
-  'bovino': {
+  'Suíno-Terminação/Maraã': {
+    biogasPerM3: 0.014,
+    investmentPerKw: 8500
+  },
+  'Bovino-Matriz UPD': {
     biogasPerM3: 0.024,
-    kwhPerM3Biogas: 2.0,
     investmentPerKw: 9000
   },
-  'rso': {
-    biogasPerM3: 81.6,
-    kwhPerM3Biogas: 2.0,
-    investmentPerKw: 7500
+  'Bovino-Terminação Confinamento': {
+    biogasPerM3: 0.030,
+    investmentPerKw: 9000
   },
-  'aves': {
+  'Aves-Poedeira': {
+    biogasPerM3: 0.010,
+    investmentPerKw: 8000
+  },
+  'Aves-Frango de Corte': {
     biogasPerM3: 0.017,
-    kwhPerM3Biogas: 2.0,
     investmentPerKw: 8000
   }
 };
+
+// Dados de produção de biogás por outros substratos (m³/tonelada)
+const OTHER_SUBSTRATE_DATA: Record<string, {
+  biogasPerTon: number;
+  investmentPerKw: number;
+}> = {
+  'RSO': {
+    biogasPerTon: 81.6,
+    investmentPerKw: 7500
+  },
+  'RSU': {
+    biogasPerTon: 100.0,
+    investmentPerKw: 7800
+  }
+};
+
+const KWH_PER_M3_BIOGAS = 2.0;
 
 export function calculateProposal(
   technical: TechnicalData,
   currentCosts: CurrentCosts,
   financial: FinancialConfig
 ): ProposalCalculations {
-  const substrateInfo = SUBSTRATE_DATA[technical.substrate] || SUBSTRATE_DATA['suino'];
+  // Calcular produção de biogás de plantel (m³/dia)
+  let dailyBiogasFromLivestock = 0;
+  let totalInvestmentKwLivestock = 0;
+  let countLivestock = 0;
   
-  // Calcular produção de biogás diária (m³/dia)
-  const dailyBiogasProduction = technical.volume * substrateInfo.biogasPerM3;
+  for (const livestock of technical.livestockComposition) {
+    const key = `${livestock.type}-${livestock.class}`;
+    const livestockInfo = LIVESTOCK_DATA[key];
+    
+    if (livestockInfo) {
+      // Converter tempo de confinamento em horas para fração do dia
+      const confinementFraction = livestock.confinementTime / 24;
+      const biogasPerAnimal = livestockInfo.biogasPerM3 * confinementFraction;
+      dailyBiogasFromLivestock += biogasPerAnimal * livestock.quantity;
+      totalInvestmentKwLivestock += livestockInfo.investmentPerKw;
+      countLivestock++;
+    }
+  }
   
-  // Custo adicional se não houver rede trifásica (estimativa: R$ 15.000 a R$ 30.000)
+  // Calcular produção de biogás de outros substratos (m³/dia)
+  let dailyBiogasFromSubstrates = 0;
+  let totalInvestmentKwSubstrates = 0;
+  let countSubstrates = 0;
+  
+  for (const substrate of technical.otherSubstrates) {
+    const substrateInfo = OTHER_SUBSTRATE_DATA[substrate.type];
+    
+    if (substrateInfo) {
+      // volume já está em toneladas/dia
+      dailyBiogasFromSubstrates += substrate.volume * substrateInfo.biogasPerTon;
+      totalInvestmentKwSubstrates += substrateInfo.investmentPerKw;
+      countSubstrates++;
+    }
+  }
+  
+  // Produção total de biogás (m³/dia)
+  const dailyBiogasProduction = dailyBiogasFromLivestock + dailyBiogasFromSubstrates;
+  
+  // Calcular investimento médio por kW
+  const totalCount = countLivestock + countSubstrates;
+  const avgInvestmentPerKw = totalCount > 0 
+    ? (totalInvestmentKwLivestock + totalInvestmentKwSubstrates) / totalCount 
+    : 8500;
+  
+  // Custo adicional se não houver rede trifásica
   const threePhaseGridCost = !technical.hasThreePhaseGrid ? 20000 : 0;
   
-  // Custo adicional por distância da rede (estimativa: R$ 500 por metro)
+  // Custo adicional por distância da rede
   const gridDistanceCost = technical.gridDistance * 500;
   
   // Calcular produção de energia (kWh/dia)
-  const dailyEnergyProduction = dailyBiogasProduction * substrateInfo.kwhPerM3Biogas;
+  const dailyEnergyProduction = dailyBiogasProduction * KWH_PER_M3_BIOGAS;
   
-  // Potência instalada (kW) - assumindo 8h de operação
+  // Potência instalada (kW) - assumindo 8h de operação por dia
   const installedPowerKw = dailyEnergyProduction / 8;
   
+  // Investimento base no gerador e biodigestor
+  const baseInvestment = installedPowerKw * avgInvestmentPerKw;
+  
   // Investimento total (incluindo custos adicionais de infraestrutura)
-  const baseInvestment = installedPowerKw * substrateInfo.investmentPerKw;
   const totalInvestment = baseInvestment + threePhaseGridCost + gridDistanceCost;
   
   // Valor do sinal
@@ -61,30 +123,30 @@ export function calculateProposal(
   
   // Calcular parcela mensal
   let monthlyInstallment = 0;
-  if (financial.paymentMethod === 'financing') {
-    // Sistema PRICE
-    const monthlyRate = financial.interestRate / 100 / 12;
+  const monthlyRate = financial.monthlyInterestRate / 100;
+  
+  if (financial.interestType === 'compound') {
+    // Sistema PRICE (juros compostos)
     const n = financial.installments;
-    monthlyInstallment = financedAmount * (monthlyRate * Math.pow(1 + monthlyRate, n)) / 
-                         (Math.pow(1 + monthlyRate, n) - 1);
+    if (monthlyRate > 0) {
+      monthlyInstallment = financedAmount * (monthlyRate * Math.pow(1 + monthlyRate, n)) / 
+                           (Math.pow(1 + monthlyRate, n) - 1);
+    } else {
+      monthlyInstallment = financedAmount / n;
+    }
   } else {
-    // Pagamento direto com Enermac (sem juros ou juros menores)
-    const directRate = 0.005; // 0.5% ao mês
-    const monthlyRate = directRate;
-    const n = financial.installments;
-    monthlyInstallment = financedAmount * (monthlyRate * Math.pow(1 + monthlyRate, n)) / 
-                         (Math.pow(1 + monthlyRate, n) - 1);
+    // Juros simples
+    const totalInterest = financedAmount * monthlyRate * financial.installments;
+    const totalAmount = financedAmount + totalInterest;
+    monthlyInstallment = totalAmount / financial.installments;
   }
   
   // Economia mensal com energia
   const monthlyEnergyProduction = dailyEnergyProduction * 30;
   const monthlyEnergySavings = monthlyEnergyProduction * currentCosts.energyCostKwh;
   
-  // Economia com combustível (se aplicável)
-  const monthlyFuelSavings = currentCosts.monthlyFuelConsumption * currentCosts.fuelCostLiter * 0.7; // 70% de redução
-  
   // Economia total mensal
-  const monthlySavings = monthlyEnergySavings + monthlyFuelSavings;
+  const monthlySavings = monthlyEnergySavings;
   
   // Receita mensal líquida (economia - parcela)
   const monthlyRevenue = monthlySavings - monthlyInstallment;
@@ -93,17 +155,17 @@ export function calculateProposal(
   const annualSavings = monthlySavings * 12;
   
   // Payback em meses
-  const paybackMonths = totalInvestment / monthlySavings;
+  const paybackMonths = monthlySavings > 0 ? totalInvestment / monthlySavings : 0;
   const paybackYears = paybackMonths / 12;
   
   // ROI em 20 anos (assumindo reajuste de 6.5% ao ano)
   let totalSavings20Years = 0;
-  let currentSavings = annualSavings;
+  let currentAnnualSavings = annualSavings;
   for (let year = 1; year <= 20; year++) {
-    totalSavings20Years += currentSavings;
-    currentSavings *= 1.065; // Reajuste anual
+    totalSavings20Years += currentAnnualSavings;
+    currentAnnualSavings *= 1.065; // Reajuste anual
   }
-  const roi20Years = ((totalSavings20Years - totalInvestment) / totalInvestment) * 100;
+  const roi20Years = totalInvestment > 0 ? ((totalSavings20Years - totalInvestment) / totalInvestment) * 100 : 0;
   
   return {
     totalInvestment,
