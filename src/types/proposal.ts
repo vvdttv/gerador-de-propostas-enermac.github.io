@@ -7,10 +7,29 @@ export interface ClientData {
   email: string;
 }
 
+export interface LivestockComposition {
+  type: string;
+  class: string;
+  quantity: number;
+  confinementTime: number;
+}
+
+export interface OtherSubstrate {
+  type: string;
+  volume: number;
+  unit: string;
+}
+
 export interface TechnicalData {
   substrate: string;
   volume: number;
   biogasProduction: number;
+  livestockComposition: LivestockComposition[];
+  otherSubstrates: OtherSubstrate[];
+  monthlyEnergyConsumption: number;
+  hasThreePhaseGrid: boolean;
+  gridDistance: number;
+  state: string;
 }
 
 export interface CurrentCosts {

@@ -37,14 +37,21 @@ export function calculateProposal(
   // Calcular produção de biogás diária (m³/dia)
   const dailyBiogasProduction = technical.volume * substrateInfo.biogasPerM3;
   
+  // Custo adicional se não houver rede trifásica (estimativa: R$ 15.000 a R$ 30.000)
+  const threePhaseGridCost = !technical.hasThreePhaseGrid ? 20000 : 0;
+  
+  // Custo adicional por distância da rede (estimativa: R$ 500 por metro)
+  const gridDistanceCost = technical.gridDistance * 500;
+  
   // Calcular produção de energia (kWh/dia)
   const dailyEnergyProduction = dailyBiogasProduction * substrateInfo.kwhPerM3Biogas;
   
   // Potência instalada (kW) - assumindo 8h de operação
   const installedPowerKw = dailyEnergyProduction / 8;
   
-  // Investimento total
-  const totalInvestment = installedPowerKw * substrateInfo.investmentPerKw;
+  // Investimento total (incluindo custos adicionais de infraestrutura)
+  const baseInvestment = installedPowerKw * substrateInfo.investmentPerKw;
+  const totalInvestment = baseInvestment + threePhaseGridCost + gridDistanceCost;
   
   // Valor do sinal
   const downPayment = totalInvestment * (financial.downPaymentPercentage / 100);

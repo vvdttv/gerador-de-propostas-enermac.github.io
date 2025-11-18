@@ -7,6 +7,7 @@ import { FinancialConfigForm } from './forms/FinancialConfigForm';
 import { ProposalPreview } from './ProposalPreview';
 import { Button } from './ui/button';
 import { calculateProposal } from '@/utils/proposalCalculations';
+import enermacLogo from '@/assets/enermac-logo.png';
 
 export function ProposalForm() {
   const [step, setStep] = useState(1);
@@ -21,7 +22,13 @@ export function ProposalForm() {
   const [technicalData, setTechnicalData] = useState<TechnicalData>({
     substrate: 'suino',
     volume: 0,
-    biogasProduction: 0
+    biogasProduction: 0,
+    livestockComposition: [],
+    otherSubstrates: [],
+    monthlyEnergyConsumption: 0,
+    hasThreePhaseGrid: true,
+    gridDistance: 0,
+    state: ''
   });
   const [currentCosts, setCurrentCosts] = useState<CurrentCosts>({
     energyCostKwh: 0.79,
@@ -52,13 +59,14 @@ export function ProposalForm() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8 text-center">
+          <img src={enermacLogo} alt="Enermac" className="h-16 mx-auto mb-4" />
           <h1 className="text-4xl font-bold text-primary mb-2">Enermac</h1>
           <p className="text-muted-foreground">Gerador de Propostas - Bioenergia</p>
         </div>
 
         <div className="max-w-4xl mx-auto">
           {/* Progress Bar */}
-          <div className="mb-8">
+          <div className="mb-8 no-print">
             <div className="flex justify-between mb-2">
               {[1, 2, 3, 4, 5].map((s) => (
                 <div
@@ -107,7 +115,7 @@ export function ProposalForm() {
           </div>
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between">
+          <div className="flex justify-between no-print">
             <Button
               variant="outline"
               onClick={handlePrevious}
