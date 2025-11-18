@@ -104,9 +104,27 @@ export function ProposalPreview({ client, calculations, financial, technical, cu
           <Lightbulb className="h-5 w-5 text-primary print:text-black" />
           Rota Tecnológica Escolhida
         </h2>
-        <p className="text-muted-foreground leading-relaxed print:text-gray-800">
+        <p className="text-muted-foreground leading-relaxed print:text-gray-800 mb-4">
           {calculations.technologicalRoute}
         </p>
+
+        <Separator className="my-4" />
+
+        <h3 className="text-lg font-semibold mb-3">Equipamentos Selecionados</h3>
+        <div className="space-y-3">
+          <div className="p-3 bg-background rounded-lg print:bg-gray-50">
+            <p className="text-sm font-semibold text-primary print:text-black">Biodigestor</p>
+            <p className="text-sm text-muted-foreground print:text-gray-800">{calculations.equipmentDetails.biodigestor}</p>
+          </div>
+          <div className="p-3 bg-background rounded-lg print:bg-gray-50">
+            <p className="text-sm font-semibold text-primary print:text-black">Grupo Motogerador</p>
+            <p className="text-sm text-muted-foreground print:text-gray-800">{calculations.equipmentDetails.generator}</p>
+          </div>
+          <div className="p-3 bg-background rounded-lg print:bg-gray-50">
+            <p className="text-sm font-semibold text-primary print:text-black">Descrição Completa do Sistema</p>
+            <p className="text-sm text-muted-foreground print:text-gray-800">{calculations.equipmentDetails.description}</p>
+          </div>
+        </div>
         
         <div className="mt-6 grid md:grid-cols-3 gap-4">
           <div className="p-3 bg-background rounded-lg print:bg-gray-50">
@@ -129,33 +147,88 @@ export function ProposalPreview({ client, calculations, financial, technical, cu
         <Alert variant="destructive" className="print:break-after-page print:border-red-300 print:bg-red-50">
           <AlertTriangle className="h-5 w-5" />
           <AlertDescription>
-            <div className="space-y-3">
-              <p className="font-bold text-lg">⚠️ Situação Atual do Projeto</p>
-              <p className="text-base leading-relaxed">
-                Com base na análise técnico-econômica realizada, identificamos que o projeto apresenta <strong>limitações importantes de viabilidade</strong> que precisam ser endereçadas antes de prosseguir com a implementação:
-              </p>
-              <ul className="list-disc list-inside space-y-2 ml-2">
+            <div className="space-y-4">
+              <p className="font-bold text-xl">⚠️ Análise Detalhada de Viabilidade do Projeto</p>
+              
+              <div className="p-4 bg-background/50 rounded-lg print:bg-white border-l-4 border-red-600">
+                <p className="font-semibold text-lg mb-2">🔍 Diagnóstico da Situação Atual</p>
+                <p className="text-base leading-relaxed mb-3">
+                  Após análise técnico-econômica detalhada dos parâmetros do projeto, identificamos <strong className="text-red-700">{calculations.viabilityIssues.length} limitação(ões) crítica(s)</strong> que impedem a viabilidade do projeto nas condições atuais. Cada ponto abaixo detalha especificamente o problema encontrado e seu impacto:
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <p className="font-semibold text-base">📋 Problemas Identificados:</p>
                 {calculations.viabilityIssues.map((issue, index) => (
-                  <li key={index} className="text-base">{issue}</li>
+                  <div key={index} className="p-3 bg-background/50 rounded-lg print:bg-white border-l-4 border-red-500">
+                    <p className="text-sm font-semibold text-red-700">Problema {index + 1}:</p>
+                    <p className="text-sm leading-relaxed mt-1">{issue}</p>
+                  </div>
                 ))}
-              </ul>
-              <div className="mt-4 p-4 bg-background/50 rounded-lg print:bg-white">
-                <p className="font-semibold mb-2">💡 Recomendações para Viabilização:</p>
-                <ul className="list-disc list-inside space-y-1 text-sm">
+              </div>
+
+              <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-300">
+                <p className="font-bold text-base mb-3 text-yellow-900">💡 Plano de Ação para Viabilização do Projeto:</p>
+                <p className="text-sm mb-3 text-yellow-900">
+                  Para transformar este projeto em uma oportunidade viável, recomendamos as seguintes ações específicas:
+                </p>
+                <ul className="list-disc list-inside space-y-2 text-sm text-yellow-900">
                   {calculations.dailyBiogasProduction < 10 && (
-                    <li>Aumentar a quantidade de substrato ou animais em confinamento para elevar a produção de biogás</li>
+                    <li className="pl-2">
+                      <strong>Aumentar Produção de Biogás:</strong> Elevar a produção para pelo menos 10 m³/dia através de:
+                      <ul className="list-circle list-inside ml-6 mt-1 space-y-1">
+                        <li>Aumentar o número de animais em confinamento (mínimo recomendado conforme tipo de criação)</li>
+                        <li>Adicionar substratos orgânicos complementares (resíduos agroindustriais, silagem, etc.)</li>
+                        <li>Implementar codigestão anaeróbia para otimizar a produção</li>
+                      </ul>
+                    </li>
                   )}
                   {calculations.monthlyRevenue < 0 && (
-                    <li>Considerar aumentar o período de financiamento para reduzir as parcelas mensais ou aumentar o sinal</li>
+                    <li className="pl-2">
+                      <strong>Equilibrar Fluxo de Caixa:</strong> Tornar o fluxo mensal positivo através de:
+                      <ul className="list-circle list-inside ml-6 mt-1 space-y-1">
+                        <li>Aumentar o prazo de financiamento de {financial.installments} para 180 ou 240 meses, reduzindo parcelas</li>
+                        <li>Elevar o valor do sinal de {financial.downPaymentPercentage}% para 30-40% do investimento total</li>
+                        <li>Negociar taxa de juros reduzida (buscar linhas de crédito verde com juros subsidiados)</li>
+                        <li>Aumentar a escala do projeto para gerar mais economia mensal</li>
+                      </ul>
+                    </li>
                   )}
                   {calculations.paybackYears > 20 && (
-                    <li>Revisar as condições de financiamento ou avaliar fontes de substrato adicionais para melhorar o retorno</li>
+                    <li className="pl-2">
+                      <strong>Reduzir Período de Retorno:</strong> Buscar payback inferior a 15 anos através de:
+                      <ul className="list-circle list-inside ml-6 mt-1 space-y-1">
+                        <li>Otimizar custos de investimento (negociar equipamentos, buscar fornecedores alternativos)</li>
+                        <li>Aumentar as fontes de receita (venda de excedente de energia, comercialização de biofertilizante)</li>
+                        <li>Buscar linhas de financiamento com juros subsidiados para energias renováveis</li>
+                        <li>Considerar incentivos fiscais e programas governamentais de bioenergia</li>
+                      </ul>
+                    </li>
                   )}
                   {calculations.dailyEnergyProduction < currentCosts.monthlyEnergyConsumption / 30 && (
-                    <li>Dimensionar o sistema para atender plenamente a demanda energética da propriedade</li>
+                    <li className="pl-2">
+                      <strong>Aumentar Geração de Energia:</strong> Dimensionar para atender 100% da demanda através de:
+                      <ul className="list-circle list-inside ml-6 mt-1 space-y-1">
+                        <li>Aumentar significativamente o volume de substrato processado</li>
+                        <li>Instalar gerador de maior capacidade ({formatNumber(currentCosts.monthlyEnergyConsumption / 30 / 8)} kW mínimo recomendado)</li>
+                        <li>Implementar sistema de armazenamento de biogás (gasômetro) para operação contínua</li>
+                        <li>Considerar sistema híbrido (bioenergia + solar fotovoltaica) para complementar a geração</li>
+                      </ul>
+                    </li>
                   )}
-                  <li>Consultar nossa equipe técnica para avaliar alternativas e ajustes no projeto</li>
+                  <li className="pl-2">
+                    <strong>Consultoria Técnica Especializada:</strong> Agendar reunião com nossa equipe técnica para:
+                    <ul className="list-circle list-inside ml-6 mt-1 space-y-1">
+                      <li>Análise in loco da propriedade e disponibilidade de substratos</li>
+                      <li>Simulação de cenários alternativos com diferentes configurações</li>
+                      <li>Orientação sobre programas de financiamento e incentivos disponíveis</li>
+                      <li>Elaboração de plano de viabilização customizado</li>
+                    </ul>
+                  </li>
                 </ul>
+                <p className="text-sm mt-3 font-semibold text-yellow-900">
+                  📞 Entre em contato conosco para discutir as melhores alternativas para viabilizar seu projeto de bioenergia.
+                </p>
               </div>
             </div>
           </AlertDescription>
@@ -334,8 +407,9 @@ export function ProposalPreview({ client, calculations, financial, technical, cu
 
       {/* Footer */}
       <div className="text-center text-sm text-muted-foreground pt-8 border-t print:text-gray-600">
-        <p>Esta proposta é válida por 30 dias a partir da data de emissão.</p>
-        <p className="mt-2">Enermac - Energia Renovável | contato@enermac.com | (00) 0000-0000</p>
+        <p className="font-semibold">Data de Emissão: {calculations.proposalDate}</p>
+        <p className="mt-1">Esta proposta é válida até: {calculations.validityDate}</p>
+        <p className="mt-3">Enermac - Energia Renovável</p>
       </div>
     </div>
   );
