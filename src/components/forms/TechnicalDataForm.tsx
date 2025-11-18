@@ -20,6 +20,11 @@ const LIVESTOCK_TYPES = {
 
 const OTHER_SUBSTRATES = ['RSO', 'RSU'];
 
+const BRAZILIAN_STATES = [
+  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG',
+  'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
+];
+
 export function TechnicalDataForm({ data, onChange }: Props) {
   const handleChange = (field: keyof TechnicalData, value: any) => {
     onChange({ ...data, [field]: value });
@@ -78,6 +83,21 @@ export function TechnicalDataForm({ data, onChange }: Props) {
       </div>
 
       <div className="grid gap-6">
+        <div className="space-y-2">
+          <Label htmlFor="state">Estado (Local do Projeto) *</Label>
+          <Select value={data.state} onValueChange={(value) => handleChange('state', value)}>
+            <SelectTrigger id="state">
+              <SelectValue placeholder="Selecione o estado" />
+            </SelectTrigger>
+            <SelectContent>
+              {BRAZILIAN_STATES.map((state) => (
+                <SelectItem key={state} value={state}>
+                  {state}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="space-y-4 p-4 bg-secondary/10 rounded-lg border">
           <div className="flex justify-between items-center">
             <h3 className="font-semibold text-lg">Composição do Plantel</h3>
@@ -200,14 +220,14 @@ export function TechnicalDataForm({ data, onChange }: Props) {
               </div>
               
               <div className="space-y-2">
-                <Label>Peso Gerado por Dia (t/dia) *</Label>
+                <Label>Peso Gerado por Dia (kg/dia) *</Label>
                 <Input
                   type="number"
                   min="0"
-                  step="0.01"
+                  step="1"
                   value={substrate.volume || ''}
                   onChange={(e) => updateSubstrate(index, 'volume', parseFloat(e.target.value) || 0)}
-                  placeholder="Ex: 2.5"
+                  placeholder="Ex: 2500"
                 />
               </div>
               

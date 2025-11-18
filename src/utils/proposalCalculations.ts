@@ -81,8 +81,9 @@ export function calculateProposal(
     const substrateInfo = OTHER_SUBSTRATE_DATA[substrate.type];
     
     if (substrateInfo) {
-      // volume já está em toneladas/dia
-      dailyBiogasFromSubstrates += substrate.volume * substrateInfo.biogasPerTon;
+      // volume está em kg/dia, converter para toneladas
+      const volumeInTons = substrate.volume / 1000;
+      dailyBiogasFromSubstrates += volumeInTons * substrateInfo.biogasPerTon;
       totalInvestmentKwSubstrates += substrateInfo.investmentPerKw;
       countSubstrates++;
     }
@@ -167,6 +168,30 @@ export function calculateProposal(
   }
   const roi20Years = totalInvestment > 0 ? ((totalSavings20Years - totalInvestment) / totalInvestment) * 100 : 0;
   
+  // Verificar viabilidade
+  const viabilityIssues: string[] = [];
+  let isViable = true;
+
+  if (dailyBiogasProduction < 10) {
+    viabilityIssues.push('Produção de biogás insuficiente (mínimo 10 m³/dia)');
+    isViable = false;
+  }
+
+  if (monthlyRevenue < 0) {
+    viabilityIssues.push('Receita líquida mensal negativa - as parcelas superam a economia');
+    isViable = false;
+  }
+
+  if (paybackYears > 20) {
+    viabilityIssues.push('Período de retorno muito longo (acima de 20 anos)');
+    isViable = false;
+  }
+
+  if (dailyEnergyProduction < currentCosts.monthlyEnergyConsumption / 30) {
+    viabilityIssues.push('Produção de energia insuficiente para atender o consumo mensal');
+    isViable = false;
+  }
+
   return {
     totalInvestment,
     downPayment,
@@ -176,6 +201,16 @@ export function calculateProposal(
     annualSavings,
     paybackMonths,
     paybackYears,
-    roi20Years
+    roi20Years,
+    dailyBiogasProduction,
+    dailyEnergyProduction,
+    installedPowerKw,
+    investmentBreakdown: {
+      baseInvestment,
+      threePhaseGridCost,
+      gridDistanceCost
+    },
+    isViable,
+    viabilityIssues
   };
 }
