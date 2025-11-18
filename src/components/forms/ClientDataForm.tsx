@@ -1,6 +1,7 @@
 import { ClientData } from '@/types/proposal';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 
 interface Props {
   data: ClientData;
@@ -86,6 +87,48 @@ export function ClientDataForm({ data, onChange }: Props) {
             placeholder="email@exemplo.com"
             required
           />
+        </div>
+      </div>
+
+      <Separator className="my-6" />
+
+      <div>
+        <h3 className="text-xl font-semibold mb-4">Dados do Consultor</h3>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="consultantName">Nome do Consultor *</Label>
+            <Input
+              id="consultantName"
+              value={data.consultantName}
+              onChange={(e) => handleChange('consultantName', e.target.value)}
+              placeholder="Nome completo do consultor"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="consultantPhone">Telefone do Consultor *</Label>
+            <Input
+              id="consultantPhone"
+              type="tel"
+              value={data.consultantPhone}
+              onChange={(e) => handleChange('consultantPhone', e.target.value)}
+              placeholder="(00) 00000-0000"
+              required
+            />
+          </div>
+
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="consultantEmail">E-mail do Consultor *</Label>
+            <Input
+              id="consultantEmail"
+              type="email"
+              value={data.consultantEmail}
+              onChange={(e) => handleChange('consultantEmail', e.target.value)}
+              placeholder="consultor@enermac.com"
+              required
+            />
+          </div>
         </div>
       </div>
     </div>

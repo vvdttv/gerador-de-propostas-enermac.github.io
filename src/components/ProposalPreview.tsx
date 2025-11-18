@@ -1,15 +1,9 @@
 import { ClientData, TechnicalData, CurrentCosts, FinancialConfig, ProposalCalculations } from '@/types/proposal';
 import { Card } from './ui/card';
 import { Separator } from './ui/separator';
-import { TrendingUp, DollarSign, Calendar, Zap, Leaf, TrendingDown, Download, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { TrendingUp, DollarSign, Calendar, Zap, Leaf, AlertTriangle, CheckCircle2, User, Lightbulb } from 'lucide-react';
 import { Button } from './ui/button';
 import { Alert, AlertDescription } from './ui/alert';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu';
 
 interface Props {
   client: ClientData;
@@ -38,67 +32,161 @@ export function ProposalPreview({ client, calculations, financial, technical, cu
     window.print();
   };
 
-  const handleExportPPT = () => {
-    alert('Funcionalidade de exportação para PPT em desenvolvimento');
-  };
-
   return (
     <div className="space-y-6 print:text-black">
       {/* Header */}
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-primary">PROPOSTA COMERCIAL</h1>
+      <div className="text-center space-y-2 print:mb-8">
+        <h1 className="text-3xl font-bold text-primary print:text-black">PROPOSTA COMERCIAL</h1>
         <p className="text-xl font-semibold">Enermac - Energia Renovável</p>
-        <p className="text-muted-foreground">Geração de Bioenergia através de Resíduos Orgânicos</p>
+        <p className="text-muted-foreground print:text-gray-600">Geração de Bioenergia através de Resíduos Orgânicos</p>
       </div>
 
-      <Separator />
+      <Separator className="print:hidden" />
 
       {/* Client Info */}
-      <Card className="p-6 bg-primary/5 border-primary/20 print:break-after-page">
+      <Card className="p-6 bg-primary/5 border-primary/20 print:break-after-page print:bg-white print:border-gray-300">
         <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-          <Leaf className="h-5 w-5 text-primary" />
+          <Leaf className="h-5 w-5 text-primary print:text-black" />
           Dados do Cliente
         </h2>
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <p className="text-sm text-muted-foreground">Cliente</p>
+            <p className="text-sm text-muted-foreground print:text-gray-600">Cliente</p>
             <p className="font-semibold">{client.clientName}</p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Propriedade</p>
+            <p className="text-sm text-muted-foreground print:text-gray-600">Propriedade</p>
             <p className="font-semibold">{client.propertyName}</p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Endereço</p>
+            <p className="text-sm text-muted-foreground print:text-gray-600">Endereço</p>
             <p className="font-semibold">{client.propertyAddress}</p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Cidade/Estado</p>
+            <p className="text-sm text-muted-foreground print:text-gray-600">Cidade/Estado</p>
             <p className="font-semibold">{client.cityState}</p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Telefone</p>
+            <p className="text-sm text-muted-foreground print:text-gray-600">Telefone</p>
             <p className="font-semibold">{client.phone}</p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">E-mail</p>
+            <p className="text-sm text-muted-foreground print:text-gray-600">E-mail</p>
             <p className="font-semibold">{client.email}</p>
+          </div>
+        </div>
+
+        <Separator className="my-4" />
+
+        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+          <User className="h-5 w-5 text-primary print:text-black" />
+          Consultor Responsável
+        </h3>
+        <div className="grid md:grid-cols-3 gap-4">
+          <div>
+            <p className="text-sm text-muted-foreground print:text-gray-600">Nome</p>
+            <p className="font-semibold">{client.consultantName}</p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground print:text-gray-600">Telefone</p>
+            <p className="font-semibold">{client.consultantPhone}</p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground print:text-gray-600">E-mail</p>
+            <p className="font-semibold">{client.consultantEmail}</p>
           </div>
         </div>
       </Card>
 
-      {/* Viability Alert */}
-      {!calculations.isViable && (
-        <Alert variant="destructive" className="print:break-after-page">
-          <AlertTriangle className="h-4 w-4" />
+      {/* Technological Route */}
+      <Card className="p-6 bg-primary/5 border-primary/20 print:break-after-page print:bg-white print:border-gray-300">
+        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <Lightbulb className="h-5 w-5 text-primary print:text-black" />
+          Rota Tecnológica Escolhida
+        </h2>
+        <p className="text-muted-foreground leading-relaxed print:text-gray-800">
+          {calculations.technologicalRoute}
+        </p>
+        
+        <div className="mt-6 grid md:grid-cols-3 gap-4">
+          <div className="p-3 bg-background rounded-lg print:bg-gray-50">
+            <p className="text-sm text-muted-foreground print:text-gray-600">Produção de Biogás</p>
+            <p className="text-lg font-bold">{formatNumber(calculations.dailyBiogasProduction)} m³/dia</p>
+          </div>
+          <div className="p-3 bg-background rounded-lg print:bg-gray-50">
+            <p className="text-sm text-muted-foreground print:text-gray-600">Produção de Energia</p>
+            <p className="text-lg font-bold">{formatNumber(calculations.dailyEnergyProduction)} kWh/dia</p>
+          </div>
+          <div className="p-3 bg-background rounded-lg print:bg-gray-50">
+            <p className="text-sm text-muted-foreground print:text-gray-600">Potência Instalada</p>
+            <p className="text-lg font-bold">{formatNumber(calculations.installedPowerKw)} kW</p>
+          </div>
+        </div>
+      </Card>
+
+      {/* Viability Status */}
+      {!calculations.isViable ? (
+        <Alert variant="destructive" className="print:break-after-page print:border-red-300 print:bg-red-50">
+          <AlertTriangle className="h-5 w-5" />
           <AlertDescription>
-            <div className="space-y-2">
-              <p className="font-semibold">Este projeto apresenta limitações de viabilidade:</p>
-              <ul className="list-disc list-inside space-y-1">
+            <div className="space-y-3">
+              <p className="font-bold text-lg">⚠️ Situação Atual do Projeto</p>
+              <p className="text-base leading-relaxed">
+                Com base na análise técnico-econômica realizada, identificamos que o projeto apresenta <strong>limitações importantes de viabilidade</strong> que precisam ser endereçadas antes de prosseguir com a implementação:
+              </p>
+              <ul className="list-disc list-inside space-y-2 ml-2">
                 {calculations.viabilityIssues.map((issue, index) => (
-                  <li key={index}>{issue}</li>
+                  <li key={index} className="text-base">{issue}</li>
                 ))}
               </ul>
+              <div className="mt-4 p-4 bg-background/50 rounded-lg print:bg-white">
+                <p className="font-semibold mb-2">💡 Recomendações para Viabilização:</p>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  {calculations.dailyBiogasProduction < 10 && (
+                    <li>Aumentar a quantidade de substrato ou animais em confinamento para elevar a produção de biogás</li>
+                  )}
+                  {calculations.monthlyRevenue < 0 && (
+                    <li>Considerar aumentar o período de financiamento para reduzir as parcelas mensais ou aumentar o sinal</li>
+                  )}
+                  {calculations.paybackYears > 20 && (
+                    <li>Revisar as condições de financiamento ou avaliar fontes de substrato adicionais para melhorar o retorno</li>
+                  )}
+                  {calculations.dailyEnergyProduction < currentCosts.monthlyEnergyConsumption / 30 && (
+                    <li>Dimensionar o sistema para atender plenamente a demanda energética da propriedade</li>
+                  )}
+                  <li>Consultar nossa equipe técnica para avaliar alternativas e ajustes no projeto</li>
+                </ul>
+              </div>
+            </div>
+          </AlertDescription>
+        </Alert>
+      ) : (
+        <Alert className="border-green-500 bg-green-50 print:break-after-page">
+          <CheckCircle2 className="h-5 w-5 text-green-600" />
+          <AlertDescription>
+            <div className="space-y-3">
+              <p className="font-bold text-lg text-green-800">✅ Situação Atual do Projeto</p>
+              <p className="text-base leading-relaxed text-green-900">
+                Excelente notícia! A análise técnico-econômica indica que <strong>o projeto é plenamente viável</strong> e apresenta condições favoráveis para implementação. Os indicadores demonstram:
+              </p>
+              <ul className="list-disc list-inside space-y-2 ml-2 text-green-900">
+                <li>Produção de biogás dentro dos parâmetros ideais ({formatNumber(calculations.dailyBiogasProduction)} m³/dia)</li>
+                <li>Geração de energia suficiente para atender a demanda da propriedade</li>
+                <li>Retorno do investimento em {formatNumber(calculations.paybackYears)} anos, dentro do prazo recomendado</li>
+                <li>Fluxo de caixa positivo desde o início das operações</li>
+                <li>ROI de {formatNumber(calculations.roi20Years)}% em 20 anos, demonstrando excelente rentabilidade</li>
+              </ul>
+              <div className="mt-4 p-4 bg-white rounded-lg border border-green-200">
+                <p className="font-semibold mb-2 text-green-800">🎯 Por que avançar com este projeto?</p>
+                <ul className="list-disc list-inside space-y-1 text-sm text-green-900">
+                  <li>Redução imediata nos custos com energia elétrica</li>
+                  <li>Solução sustentável para destinação de resíduos orgânicos</li>
+                  <li>Geração de biofertilizante de alta qualidade como subproduto</li>
+                  <li>Independência energética e proteção contra aumentos tarifários</li>
+                  <li>Valorização da propriedade com tecnologia renovável</li>
+                  <li>Conformidade ambiental e possíveis incentivos fiscais</li>
+                </ul>
+              </div>
             </div>
           </AlertDescription>
         </Alert>
@@ -106,258 +194,148 @@ export function ProposalPreview({ client, calculations, financial, technical, cu
 
       {/* Investment Summary */}
       <div className="grid md:grid-cols-3 gap-4 print:break-after-page">
-        <Card className="p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/30">
-          <div className="flex items-center gap-3 mb-2">
-            <DollarSign className="h-8 w-8 text-primary" />
-            <h3 className="text-lg font-semibold">Investimento Total</h3>
+        <Card className="p-6 print:bg-white print:border-gray-300">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-2 bg-primary/10 rounded-lg print:bg-gray-100">
+              <DollarSign className="h-6 w-6 text-primary print:text-black" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground print:text-gray-600">Investimento Total</p>
+              <p className="text-2xl font-bold">{formatCurrency(calculations.totalInvestment)}</p>
+            </div>
           </div>
-          <p className="text-3xl font-bold text-primary mb-2">{formatCurrency(calculations.totalInvestment)}</p>
-          <div className="text-xs text-muted-foreground space-y-1">
-            <p><strong>O que está incluído:</strong></p>
-            <p>• Equipamentos e instalação: {formatCurrency(calculations.investmentBreakdown.baseInvestment)}</p>
-            {calculations.investmentBreakdown.threePhaseGridCost > 0 && (
-              <p>• Rede trifásica: {formatCurrency(calculations.investmentBreakdown.threePhaseGridCost)}</p>
-            )}
-            {calculations.investmentBreakdown.gridDistanceCost > 0 && (
-              <p>• Adequação da distância da rede: {formatCurrency(calculations.investmentBreakdown.gridDistanceCost)}</p>
-            )}
-            <p className="pt-1">Inclui biodigestor, gerador, sistema de purificação e instalação completa.</p>
-          </div>
+          <p className="text-sm text-muted-foreground mt-2 print:text-gray-700">
+            <strong>Composição:</strong> Biodigestor, gerador, instalação e infraestrutura elétrica necessária.
+          </p>
         </Card>
 
-        <Card className="p-6 bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/30">
-          <div className="flex items-center gap-3 mb-2">
-            <TrendingUp className="h-8 w-8 text-green-600" />
-            <h3 className="text-lg font-semibold">Economia Mensal</h3>
+        <Card className="p-6 print:bg-white print:border-gray-300">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-2 bg-primary/10 rounded-lg print:bg-gray-100">
+              <TrendingUp className="h-6 w-6 text-primary print:text-black" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground print:text-gray-600">Economia Mensal</p>
+              <p className="text-2xl font-bold">{formatCurrency(calculations.monthlySavings)}</p>
+            </div>
           </div>
-          <p className="text-3xl font-bold text-green-600 mb-2">{formatCurrency(calculations.monthlySavings)}</p>
-          <div className="text-xs text-muted-foreground space-y-1">
-            <p><strong>Como economizar:</strong></p>
-            <p>• Produção mensal: {formatNumber(calculations.dailyEnergyProduction * 30)} kWh</p>
-            <p>• Tarifa atual: {formatCurrency(currentCosts.energyCostKwh)}/kWh</p>
-            <p>• Cálculo: {formatNumber(calculations.dailyEnergyProduction * 30)} kWh × {formatCurrency(currentCosts.energyCostKwh)}</p>
-            <p className="pt-1">Você deixa de pagar pela energia que o sistema gera, reduzindo drasticamente sua conta.</p>
-          </div>
+          <p className="text-sm text-muted-foreground mt-2 print:text-gray-700">
+            <strong>Cálculo:</strong> Produção mensal de {formatNumber(calculations.dailyEnergyProduction * 30)} kWh × {formatCurrency(currentCosts.energyCostKwh)}/kWh
+          </p>
         </Card>
 
-        <Card className="p-6 bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/30">
-          <div className="flex items-center gap-3 mb-2">
-            <Calendar className="h-8 w-8 text-blue-600" />
-            <h3 className="text-lg font-semibold">Payback</h3>
+        <Card className="p-6 print:bg-white print:border-gray-300">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-2 bg-primary/10 rounded-lg print:bg-gray-100">
+              <Calendar className="h-6 w-6 text-primary print:text-black" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground print:text-gray-600">Payback</p>
+              <p className="text-2xl font-bold">{formatNumber(calculations.paybackYears)} anos</p>
+            </div>
           </div>
-          <p className="text-3xl font-bold text-blue-600 mb-2">{formatNumber(calculations.paybackYears)} anos</p>
-          <div className="text-xs text-muted-foreground space-y-1">
-            <p><strong>Por que este prazo:</strong></p>
-            <p>• Investimento: {formatCurrency(calculations.totalInvestment)}</p>
-            <p>• Economia mensal: {formatCurrency(calculations.monthlySavings)}</p>
-            <p>• Cálculo: {formatCurrency(calculations.totalInvestment)} ÷ {formatCurrency(calculations.monthlySavings * 12)}/ano</p>
-            <p className="pt-1">Após {formatNumber(calculations.paybackYears)} anos, o sistema já se pagou e toda economia vira lucro!</p>
-          </div>
+          <p className="text-sm text-muted-foreground mt-2 print:text-gray-700">
+            <strong>Retorno:</strong> Tempo estimado para recuperar o investimento através das economias geradas.
+          </p>
         </Card>
       </div>
 
       {/* Financial Details */}
-      <Card className="p-6 print:break-after-page">
-        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-          <DollarSign className="h-5 w-5 text-primary" />
-          Detalhamento Financeiro
-        </h2>
-        <div className="space-y-4">
-          <div className="flex justify-between items-center p-3 bg-secondary/30 rounded">
-            <span className="font-semibold">Forma de Pagamento:</span>
-            <span className="text-lg">
-              {financial.paymentMethod === 'financing' ? 'Financiamento Bancário' : 'Direto com Enermac'}
-            </span>
+      <Card className="p-6 print:break-after-page print:bg-white print:border-gray-300">
+        <h2 className="text-xl font-bold mb-4">Detalhamento Financeiro</h2>
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-3">
+            <div className="flex justify-between py-2 border-b">
+              <span className="text-muted-foreground print:text-gray-600">Forma de Pagamento</span>
+              <span className="font-semibold">{financial.paymentMethod === 'financing' ? 'Financiamento Bancário' : 'Pagamento Direto'}</span>
+            </div>
+            <div className="flex justify-between py-2 border-b">
+              <span className="text-muted-foreground print:text-gray-600">Valor do Sinal ({financial.downPaymentPercentage}%)</span>
+              <span className="font-semibold">{formatCurrency(calculations.downPayment)}</span>
+            </div>
+            <div className="flex justify-between py-2 border-b">
+              <span className="text-muted-foreground print:text-gray-600">Número de Parcelas</span>
+              <span className="font-semibold">{financial.installments}x</span>
+            </div>
+            <div className="flex justify-between py-2 border-b">
+              <span className="text-muted-foreground print:text-gray-600">Taxa de Juros Mensal</span>
+              <span className="font-semibold">{formatNumber(financial.monthlyInterestRate)}%</span>
+            </div>
+            <div className="flex justify-between py-2 border-b">
+              <span className="text-muted-foreground print:text-gray-600">Tipo de Juros</span>
+              <span className="font-semibold">{financial.interestType === 'compound' ? 'Compostos (PRICE)' : 'Simples'}</span>
+            </div>
+            <div className="flex justify-between py-2 border-b font-bold">
+              <span>Valor da Parcela Mensal</span>
+              <span className="text-primary print:text-black">{formatCurrency(calculations.monthlyInstallment)}</span>
+            </div>
           </div>
 
-          <div className="flex justify-between items-center p-3 bg-secondary/30 rounded">
-            <span className="font-semibold">Valor de Entrada ({financial.downPaymentPercentage}%):</span>
-            <span className="text-lg font-bold text-primary">{formatCurrency(calculations.downPayment)}</span>
-          </div>
-
-          <div className="flex justify-between items-center p-3 bg-secondary/30 rounded">
-            <span className="font-semibold">Valor Financiado:</span>
-            <span className="text-lg">{formatCurrency(calculations.totalInvestment - calculations.downPayment)}</span>
-          </div>
-
-          <div className="flex justify-between items-center p-3 bg-secondary/30 rounded">
-            <span className="font-semibold">Número de Parcelas:</span>
-            <span className="text-lg">{financial.installments}x</span>
-          </div>
-
-          <div className="flex justify-between items-center p-3 bg-secondary/30 rounded">
-            <span className="font-semibold">Valor da Parcela:</span>
-            <span className="text-lg font-bold text-primary">{formatCurrency(calculations.monthlyInstallment)}</span>
-          </div>
-
-          <div className="flex justify-between items-center p-3 bg-secondary/30 rounded">
-            <span className="font-semibold">Taxa de Juros:</span>
-            <span className="text-lg">{formatNumber(financial.monthlyInterestRate)}% ao mês ({financial.interestType === 'simple' ? 'Juros Simples' : 'Juros Compostos'})</span>
+          <div className="space-y-3">
+            <div className="p-4 bg-primary/5 rounded-lg print:bg-gray-50">
+              <p className="text-sm text-muted-foreground mb-1 print:text-gray-600">Investimento Base</p>
+              <p className="text-lg font-semibold">{formatCurrency(calculations.investmentBreakdown.baseInvestment)}</p>
+            </div>
+            {calculations.investmentBreakdown.threePhaseGridCost > 0 && (
+              <div className="p-4 bg-primary/5 rounded-lg print:bg-gray-50">
+                <p className="text-sm text-muted-foreground mb-1 print:text-gray-600">Adaptação Rede Trifásica</p>
+                <p className="text-lg font-semibold">{formatCurrency(calculations.investmentBreakdown.threePhaseGridCost)}</p>
+              </div>
+            )}
+            {calculations.investmentBreakdown.gridDistanceCost > 0 && (
+              <div className="p-4 bg-primary/5 rounded-lg print:bg-gray-50">
+                <p className="text-sm text-muted-foreground mb-1 print:text-gray-600">Extensão de Rede ({technical.gridDistance}m)</p>
+                <p className="text-lg font-semibold">{formatCurrency(calculations.investmentBreakdown.gridDistanceCost)}</p>
+              </div>
+            )}
           </div>
         </div>
       </Card>
 
       {/* Benefits */}
-      <Card className="p-6 bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/30 print:break-after-page">
-        <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-green-700">
-          <Zap className="h-5 w-5" />
-          Seus Benefícios
+      <Card className="p-6 print:break-after-page print:bg-white print:border-gray-300">
+        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <Zap className="h-5 w-5 text-primary print:text-black" />
+          Benefícios do Projeto
         </h2>
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="p-4 bg-background/50 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingDown className="h-5 w-5 text-green-600" />
-              <h3 className="font-semibold">Economia Anual</h3>
-            </div>
-            <p className="text-2xl font-bold text-green-600 mb-2">{formatCurrency(calculations.annualSavings)}</p>
-            <div className="text-xs text-muted-foreground space-y-1">
-              <p><strong>Motivo desta economia:</strong></p>
-              <p>• Economia mensal: {formatCurrency(calculations.monthlySavings)}</p>
-              <p>• Multiplicado por 12 meses</p>
-              <p>• Cálculo: {formatCurrency(calculations.monthlySavings)} × 12 = {formatCurrency(calculations.annualSavings)}</p>
-              <p className="pt-1">Redução direta e permanente nos custos com energia elétrica da propriedade.</p>
-            </div>
+        <div className="grid md:grid-cols-3 gap-6">
+          <div className="space-y-2">
+            <div className="text-3xl font-bold text-primary print:text-black">{formatCurrency(calculations.annualSavings)}</div>
+            <p className="text-sm text-muted-foreground print:text-gray-600">Economia Anual</p>
+            <p className="text-xs text-muted-foreground print:text-gray-700">
+              <strong>Detalhamento:</strong> Economia total no primeiro ano. Com reajuste médio de 6,5% ao ano na tarifa de energia, a economia aumenta progressivamente.
+            </p>
           </div>
 
-          <div className="p-4 bg-background/50 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="h-5 w-5 text-green-600" />
-              <h3 className="font-semibold">Receita Líquida Mensal</h3>
-            </div>
-            <p className="text-2xl font-bold text-green-600 mb-2">{formatCurrency(calculations.monthlyRevenue)}</p>
-            <div className="text-xs text-muted-foreground space-y-1">
-              <p><strong>De onde vem este valor:</strong></p>
-              <p>• Economia de energia: {formatCurrency(calculations.monthlySavings)}</p>
-              <p>• Menos parcela mensal: -{formatCurrency(calculations.monthlyInstallment)}</p>
-              <p>• Resultado: {formatCurrency(calculations.monthlySavings)} - {formatCurrency(calculations.monthlyInstallment)}</p>
-              <p className="pt-1">Fluxo de caixa positivo todo mês durante o financiamento - você já economiza enquanto paga!</p>
-            </div>
+          <div className="space-y-2">
+            <div className="text-3xl font-bold text-primary print:text-black">{formatCurrency(calculations.monthlyRevenue)}</div>
+            <p className="text-sm text-muted-foreground print:text-gray-600">Receita Líquida Mensal</p>
+            <p className="text-xs text-muted-foreground print:text-gray-700">
+              <strong>Cálculo:</strong> Economia mensal ({formatCurrency(calculations.monthlySavings)}) menos parcela mensal ({formatCurrency(calculations.monthlyInstallment)})
+            </p>
           </div>
 
-          <div className="p-4 bg-background/50 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Calendar className="h-5 w-5 text-blue-600" />
-              <h3 className="font-semibold">Retorno do Investimento</h3>
-            </div>
-            <p className="text-2xl font-bold text-blue-600 mb-2">{formatNumber(calculations.paybackMonths)} meses</p>
-            <div className="text-xs text-muted-foreground space-y-1">
-              <p><strong>Como chegamos neste resultado:</strong></p>
-              <p>• Investimento total: {formatCurrency(calculations.totalInvestment)}</p>
-              <p>• Economia mensal: {formatCurrency(calculations.monthlySavings)}</p>
-              <p>• Cálculo: {formatCurrency(calculations.totalInvestment)} ÷ {formatCurrency(calculations.monthlySavings)} = {formatNumber(calculations.paybackMonths)} meses</p>
-              <p className="pt-1">Tempo necessário para que a soma das economias iguale o investimento inicial.</p>
-            </div>
-          </div>
-
-          <div className="p-4 bg-background/50 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <DollarSign className="h-5 w-5 text-primary" />
-              <h3 className="font-semibold">ROI em 20 anos</h3>
-            </div>
-            <p className="text-2xl font-bold text-primary mb-2">{formatNumber(calculations.roi20Years)}%</p>
-            <div className="text-xs text-muted-foreground space-y-1">
-              <p><strong>Entenda este retorno:</strong></p>
-              <p>• Economia total em 20 anos: {formatCurrency(calculations.annualSavings * 20)}</p>
-              <p>• Investimento inicial: {formatCurrency(calculations.totalInvestment)}</p>
-              <p>• Cálculo: ({formatCurrency(calculations.annualSavings * 20)} - {formatCurrency(calculations.totalInvestment)}) ÷ {formatCurrency(calculations.totalInvestment)} × 100</p>
-              <p className="pt-1">Para cada R$ 1,00 investido, você terá retorno de R$ {formatNumber(1 + calculations.roi20Years/100)} em 20 anos!</p>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* Call to Action */}
-      <Card className="p-8 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 border-primary/40 print:break-after-page">
-        <div className="text-center space-y-4">
-          {calculations.isViable ? (
-            <>
-              <div className="flex justify-center mb-4">
-                <CheckCircle2 className="h-16 w-16 text-green-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-primary">
-                Este é o Melhor Investimento que Você Pode Fazer!
-              </h2>
-              <p className="text-lg">
-                Transforme seus resíduos orgânicos em <span className="font-bold text-primary">energia limpa</span> e 
-                <span className="font-bold text-primary"> economia real</span>.
-              </p>
-              <p className="text-muted-foreground">
-                Com a Enermac, você reduz custos, gera receita adicional e contribui para um futuro sustentável.
-              </p>
-            </>
-          ) : (
-            <>
-              <div className="flex justify-center mb-4">
-                <AlertTriangle className="h-16 w-16 text-orange-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-orange-600">
-                Projeto Necessita de Ajustes para Viabilização
-              </h2>
-              <p className="text-lg">
-                Identificamos alguns pontos que precisam ser otimizados para tornar este investimento viável.
-              </p>
-              <div className="text-left space-y-3 mt-4 p-4 bg-background/50 rounded-lg">
-                <p className="font-semibold">Por que o projeto não é viável no momento:</p>
-                <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                  {calculations.viabilityIssues.map((issue, index) => (
-                    <li key={index}>{issue}</li>
-                  ))}
-                </ul>
-                <p className="font-semibold pt-3">Sugestões para viabilizar o projeto:</p>
-                <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                  {calculations.dailyBiogasProduction < 10 && (
-                    <li>Aumentar a quantidade de substrato ou plantel para gerar mais biogás (mínimo 10 m³/dia recomendado)</li>
-                  )}
-                  {calculations.monthlyRevenue < 0 && (
-                    <li>Ajustar as condições de financiamento: aumentar entrada, reduzir taxa de juros ou estender o prazo de pagamento</li>
-                  )}
-                  {calculations.paybackYears > 20 && (
-                    <li>Reduzir custos de instalação ou aumentar a produção de energia para melhorar o retorno do investimento</li>
-                  )}
-                  {calculations.dailyEnergyProduction < currentCosts.monthlyEnergyConsumption / 30 && (
-                    <li>Dimensionar um sistema maior que atenda 100% da demanda energética da propriedade</li>
-                  )}
-                  <li>Considerar a comercialização de biofertilizantes como receita adicional</li>
-                  <li>Avaliar programas de incentivos fiscais e linhas de crédito específicas para energia renovável</li>
-                  <li>Explorar a possibilidade de venda de excedente de energia para a concessionária</li>
-                </ul>
-              </div>
-              <p className="text-muted-foreground mt-4">
-                Nossa equipe técnica está à disposição para ajustar o projeto e encontrar a melhor solução para seu negócio.
-              </p>
-            </>
-          )}
-          <div className="pt-4 print:hidden">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="lg" className="gap-2">
-                  <Download className="h-5 w-5" />
-                  Salvar Proposta
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={handleExportPDF}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Exportar como PDF
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleExportPPT}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Exportar como PPT
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          <div className="pt-2">
-            <p className="text-sm text-muted-foreground">
-              Proposta válida por 30 dias | Data: {new Date().toLocaleDateString('pt-BR')}
+          <div className="space-y-2">
+            <div className="text-3xl font-bold text-primary print:text-black">{formatNumber(calculations.roi20Years)}%</div>
+            <p className="text-sm text-muted-foreground print:text-gray-600">ROI em 20 anos</p>
+            <p className="text-xs text-muted-foreground print:text-gray-700">
+              <strong>Projeção:</strong> Retorno total sobre investimento considerando reajuste anual de 6,5% nas tarifas de energia elétrica.
             </p>
           </div>
         </div>
       </Card>
 
-      <div className="text-center text-sm text-muted-foreground pt-4 border-t">
-        <p>Enermac - Energia Renovável através de Biogás e Biometano</p>
-        <p>Transformando resíduos em oportunidades sustentáveis</p>
+      {/* Action Buttons */}
+      <div className="flex justify-center gap-4 no-print">
+        <Button onClick={handleExportPDF} size="lg" className="gap-2">
+          Salvar Proposta (PDF)
+        </Button>
+      </div>
+
+      {/* Footer */}
+      <div className="text-center text-sm text-muted-foreground pt-8 border-t print:text-gray-600">
+        <p>Esta proposta é válida por 30 dias a partir da data de emissão.</p>
+        <p className="mt-2">Enermac - Energia Renovável | contato@enermac.com | (00) 0000-0000</p>
       </div>
     </div>
   );

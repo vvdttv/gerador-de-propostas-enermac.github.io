@@ -17,7 +17,10 @@ export function ProposalForm() {
     propertyAddress: '',
     cityState: '',
     phone: '',
-    email: ''
+    email: '',
+    consultantName: '',
+    consultantPhone: '',
+    consultantEmail: ''
   });
   const [technicalData, setTechnicalData] = useState<TechnicalData>({
     livestockComposition: [],

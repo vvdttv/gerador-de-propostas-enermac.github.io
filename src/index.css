@@ -106,8 +106,8 @@ All colors MUST be HSL.
 
 @media print {
   @page {
-    size: landscape;
-    margin: 1cm;
+    size: A4 portrait;
+    margin: 1.5cm;
   }
   
   body {
@@ -121,5 +121,10 @@ All colors MUST be HSL.
   
   .print-only {
     display: block !important;
+  }
+  
+  .print\:break-after-page {
+    page-break-after: always;
+    break-after: page;
   }
 }

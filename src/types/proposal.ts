@@ -5,6 +5,9 @@ export interface ClientData {
   cityState: string;
   phone: string;
   email: string;
+  consultantName: string;
+  consultantPhone: string;
+  consultantEmail: string;
 }
 
 export interface LivestockComposition {
@@ -61,6 +64,7 @@ export interface ProposalCalculations {
   };
   isViable: boolean;
   viabilityIssues: string[];
+  technologicalRoute: string;
 }
 
 export interface ProposalData {
