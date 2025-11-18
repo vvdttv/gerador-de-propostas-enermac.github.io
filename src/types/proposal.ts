@@ -65,6 +65,18 @@ export interface ProposalCalculations {
   isViable: boolean;
   viabilityIssues: string[];
   technologicalRoute: string;
+  equipmentDetails: {
+    biodigestor: string;
+    generator: string;
+    description: string;
+  };
+  taxation: {
+    energyTaxRate: number;
+    monthlyTax: number;
+    annualTax: number;
+  };
+  proposalDate: string;
+  validityDate: string;
 }
 
 export interface ProposalData {

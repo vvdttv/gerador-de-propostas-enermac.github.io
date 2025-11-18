@@ -1,5 +1,36 @@
 import { CurrentCosts, FinancialConfig, TechnicalData, ProposalCalculations } from '@/types/proposal';
 
+// Taxas de tributação por estado (baseado na planilha EVTF - 10% sobre energia)
+const STATE_TAX_RATES: Record<string, number> = {
+  'Acre': 0.10,
+  'Alagoas': 0.10,
+  'Amapá': 0.10,
+  'Amazonas': 0.10,
+  'Bahia': 0.10,
+  'Ceará': 0.10,
+  'Distrito Federal': 0.10,
+  'Espírito Santo': 0.10,
+  'Goiás': 0.10,
+  'Maranhão': 0.10,
+  'Mato Grosso': 0.10,
+  'Mato Grosso do Sul': 0.10,
+  'Minas Gerais': 0.10,
+  'Pará': 0.10,
+  'Paraíba': 0.10,
+  'Paraná': 0.10,
+  'Pernambuco': 0.10,
+  'Piauí': 0.10,
+  'Rio de Janeiro': 0.10,
+  'Rio Grande do Norte': 0.10,
+  'Rio Grande do Sul': 0.10,
+  'Rondônia': 0.10,
+  'Roraima': 0.10,
+  'Santa Catarina': 0.10,
+  'São Paulo': 0.10,
+  'Sergipe': 0.10,
+  'Tocantins': 0.10,
+};
+
 // Dados de produção de biogás por animal (m³/dia por animal em confinamento completo - 24h)
 const LIVESTOCK_DATA: Record<string, {
   biogasPerM3: number;
