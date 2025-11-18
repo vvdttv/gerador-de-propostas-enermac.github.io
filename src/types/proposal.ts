@@ -21,12 +21,8 @@ export interface OtherSubstrate {
 }
 
 export interface TechnicalData {
-  substrate: string;
-  volume: number;
-  biogasProduction: number;
   livestockComposition: LivestockComposition[];
   otherSubstrates: OtherSubstrate[];
-  monthlyEnergyConsumption: number;
   hasThreePhaseGrid: boolean;
   gridDistance: number;
   state: string;
@@ -35,15 +31,14 @@ export interface TechnicalData {
 export interface CurrentCosts {
   energyCostKwh: number;
   monthlyEnergyConsumption: number;
-  fuelCostLiter: number;
-  monthlyFuelConsumption: number;
 }
 
 export interface FinancialConfig {
   paymentMethod: 'financing' | 'direct';
   downPaymentPercentage: number;
   installments: number;
-  interestRate: number;
+  monthlyInterestRate: number;
+  interestType: 'simple' | 'compound';
 }
 
 export interface ProposalCalculations {

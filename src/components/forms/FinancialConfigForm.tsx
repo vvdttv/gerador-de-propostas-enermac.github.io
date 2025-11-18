@@ -2,6 +2,7 @@ import { FinancialConfig } from '@/types/proposal';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Props {
   data: FinancialConfig;
@@ -11,6 +12,26 @@ interface Props {
 export function FinancialConfigForm({ data, onChange }: Props) {
   const handleChange = (field: keyof FinancialConfig, value: string | number) => {
     onChange({ ...data, [field]: value });
+  };
+
+  const handlePaymentMethodChange = (value: 'financing' | 'direct') => {
+    if (value === 'financing') {
+      onChange({
+        ...data,
+        paymentMethod: value,
+        monthlyInterestRate: 1.04,
+        installments: 120,
+        interestType: 'compound'
+      });
+    } else {
+      onChange({
+        ...data,
+        paymentMethod: value,
+        monthlyInterestRate: 0.49,
+        installments: 60,
+        interestType: 'simple'
+      });
+    }
   };
 
   return (
@@ -25,17 +46,7 @@ export function FinancialConfigForm({ data, onChange }: Props) {
           <Label>Forma de Pagamento *</Label>
           <RadioGroup
             value={data.paymentMethod}
-            onValueChange={(value: 'financing' | 'direct') => {
-              handleChange('paymentMethod', value);
-              // Ajustar taxa de juros automaticamente
-              if (value === 'financing') {
-                handleChange('interestRate', 13.1);
-                handleChange('installments', 120);
-              } else {
-                handleChange('interestRate', 6.0);
-                handleChange('installments', 60);
-              }
-            }}
+            onValueChange={handlePaymentMethodChange}
           >
             <div className="flex flex-col space-y-3">
               <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-secondary/50 transition-colors">
@@ -45,7 +56,7 @@ export function FinancialConfigForm({ data, onChange }: Props) {
                     Financiamento Bancário
                   </Label>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Financiamento tradicional com taxa de 13.1% a.a. - Prazo de até 120 meses
+                    Financiamento tradicional com juros compostos - Prazo de até 120 meses
                   </p>
                 </div>
               </div>
@@ -57,7 +68,7 @@ export function FinancialConfigForm({ data, onChange }: Props) {
                     Direto com Enermac
                   </Label>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Condições especiais da Enermac com taxa reduzida de 6.0% a.a. - Prazo de até 60 meses
+                    Condições especiais da Enermac com taxa reduzida - Prazo de até 60 meses
                   </p>
                 </div>
               </div>
@@ -98,27 +109,48 @@ export function FinancialConfigForm({ data, onChange }: Props) {
           />
           <p className="text-sm text-muted-foreground">
             {data.paymentMethod === 'financing' 
-              ? 'Máximo de 120 parcelas (10 anos)' 
-              : 'Máximo de 60 parcelas (5 anos)'}
+              ? 'Máximo de 120 parcelas para financiamento bancário' 
+              : 'Máximo de 60 parcelas para pagamento direto com Enermac'}
           </p>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="interestRate">Taxa de Juros Anual (%) *</Label>
+          <Label htmlFor="monthlyInterestRate">Taxa de Juros Mensal (%) *</Label>
           <Input
-            id="interestRate"
+            id="monthlyInterestRate"
             type="number"
             min="0"
-            step="0.1"
-            value={data.interestRate || ''}
-            onChange={(e) => handleChange('interestRate', parseFloat(e.target.value) || 0)}
-            placeholder="Ex: 13.1"
+            step="0.01"
+            value={data.monthlyInterestRate || ''}
+            onChange={(e) => handleChange('monthlyInterestRate', parseFloat(e.target.value) || 0)}
+            placeholder="Ex: 1.04"
             required
           />
           <p className="text-sm text-muted-foreground">
-            Taxa de juros anual aplicada ao financiamento
+            Taxa de juros mensal aplicada ao financiamento
           </p>
         </div>
+
+        {data.paymentMethod === 'direct' && (
+          <div className="space-y-2">
+            <Label htmlFor="interestType">Tipo de Juros *</Label>
+            <Select
+              value={data.interestType}
+              onValueChange={(value: 'simple' | 'compound') => handleChange('interestType', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o tipo de juros" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="simple">Juros Simples</SelectItem>
+                <SelectItem value="compound">Juros Compostos</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-sm text-muted-foreground">
+              Para pagamento direto, escolha entre juros simples ou compostos
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

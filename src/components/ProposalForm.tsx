@@ -20,27 +20,22 @@ export function ProposalForm() {
     email: ''
   });
   const [technicalData, setTechnicalData] = useState<TechnicalData>({
-    substrate: 'suino',
-    volume: 0,
-    biogasProduction: 0,
     livestockComposition: [],
     otherSubstrates: [],
-    monthlyEnergyConsumption: 0,
     hasThreePhaseGrid: true,
     gridDistance: 0,
     state: ''
   });
   const [currentCosts, setCurrentCosts] = useState<CurrentCosts>({
     energyCostKwh: 0.79,
-    monthlyEnergyConsumption: 0,
-    fuelCostLiter: 6.15,
-    monthlyFuelConsumption: 0
+    monthlyEnergyConsumption: 0
   });
   const [financialConfig, setFinancialConfig] = useState<FinancialConfig>({
     paymentMethod: 'financing',
     downPaymentPercentage: 20,
     installments: 120,
-    interestRate: 13.1
+    monthlyInterestRate: 1.04,
+    interestType: 'compound'
   });
 
   const calculations = calculateProposal(technicalData, currentCosts, financialConfig);
