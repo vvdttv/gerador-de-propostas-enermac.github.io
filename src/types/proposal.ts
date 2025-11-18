@@ -51,6 +51,16 @@ export interface ProposalCalculations {
   paybackMonths: number;
   paybackYears: number;
   roi20Years: number;
+  dailyBiogasProduction: number;
+  dailyEnergyProduction: number;
+  installedPowerKw: number;
+  investmentBreakdown: {
+    baseInvestment: number;
+    threePhaseGridCost: number;
+    gridDistanceCost: number;
+  };
+  isViable: boolean;
+  viabilityIssues: string[];
 }
 
 export interface ProposalData {
