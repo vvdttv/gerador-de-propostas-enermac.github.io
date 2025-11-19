@@ -177,17 +177,20 @@ export function calculateProposal(
     monthlyInstallment = totalAmount / financial.installments;
   }
   
-  // Economia mensal com energia
+  // Calcular tributação
+  const energyTaxRate = STATE_TAX_RATES[technical.state] || 0.10;
   const monthlyEnergyProduction = dailyEnergyProduction * 30;
   const monthlyEnergySavings = monthlyEnergyProduction * currentCosts.energyCostKwh;
+  const monthlyTax = monthlyEnergySavings * energyTaxRate;
   
-  // Economia total mensal
-  const monthlySavings = monthlyEnergySavings;
+  // Economia mensal líquida (após impostos)
+  const monthlySavings = monthlyEnergySavings - monthlyTax;
   
   // Receita mensal líquida (economia - parcela)
   const monthlyRevenue = monthlySavings - monthlyInstallment;
   
   // Economia anual
+  const annualTax = monthlyTax * 12;
   const annualSavings = monthlySavings * 12;
   
   // Payback em meses
@@ -227,10 +230,40 @@ export function calculateProposal(
     isViable = false;
   }
 
-  // Determinar rota tecnológica
+  // Determinar rota tecnológica e equipamentos
   let technologicalRoute = '';
+  let biodigestor = '';
+  let generator = '';
+  let equipmentDescription = '';
+  
   const hasLivestock = technical.livestockComposition.length > 0;
   const hasSubstrates = technical.otherSubstrates.length > 0;
+  
+  // Selecionar modelo de biodigestor baseado no volume
+  if (dailyBiogasProduction < 50) {
+    biodigestor = 'Biodigestor Modelo Canadense 30m³';
+  } else if (dailyBiogasProduction < 150) {
+    biodigestor = 'Biodigestor Modelo Indiano 100m³';
+  } else if (dailyBiogasProduction < 300) {
+    biodigestor = 'Biodigestor Lagoa Coberta 200m³';
+  } else {
+    biodigestor = 'Biodigestor Lagoa Coberta 500m³';
+  }
+  
+  // Selecionar modelo de gerador baseado na potência
+  if (installedPowerKw < 30) {
+    generator = 'Gerador a Biogás 25 kW - MWM';
+  } else if (installedPowerKw < 75) {
+    generator = 'Gerador a Biogás 50 kW - MWM';
+  } else if (installedPowerKw < 150) {
+    generator = 'Gerador a Biogás 100 kW - Caterpillar';
+  } else if (installedPowerKw < 300) {
+    generator = 'Gerador a Biogás 250 kW - Caterpillar';
+  } else {
+    generator = 'Gerador a Biogás 500 kW - Caterpillar';
+  }
+  
+  equipmentDescription = `Sistema completo de geração de energia a partir de biogás, incluindo ${biodigestor.toLowerCase()} e ${generator.toLowerCase()}, com todos os equipamentos auxiliares necessários para operação.`;
   
   if (hasLivestock && !hasSubstrates) {
     const livestockTypes = technical.livestockComposition.map(l => l.type).join(', ');
@@ -243,6 +276,10 @@ export function calculateProposal(
   } else {
     technologicalRoute = `Sistema de biodigestão anaeróbia para conversão de resíduos orgânicos em energia renovável.`;
   }
+  
+  // Datas da proposta
+  const proposalDate = new Date().toLocaleDateString('pt-BR');
+  const validityDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR');
 
   return {
     totalInvestment,
@@ -264,6 +301,18 @@ export function calculateProposal(
     },
     isViable,
     viabilityIssues,
-    technologicalRoute
+    technologicalRoute,
+    equipmentDetails: {
+      biodigestor,
+      generator,
+      description: equipmentDescription
+    },
+    taxation: {
+      energyTaxRate,
+      monthlyTax,
+      annualTax
+    },
+    proposalDate,
+    validityDate
   };
 }
