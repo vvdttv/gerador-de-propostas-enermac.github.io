@@ -1,9 +1,12 @@
 import { ClientData, TechnicalData, CurrentCosts, FinancialConfig, ProposalCalculations } from '@/types/proposal';
 import { Card } from './ui/card';
 import { Separator } from './ui/separator';
-import { TrendingUp, DollarSign, Calendar, Zap, Leaf, AlertTriangle, CheckCircle2, User, Lightbulb } from 'lucide-react';
+import { TrendingUp, DollarSign, Calendar, Zap, Leaf, AlertTriangle, CheckCircle2, User, Lightbulb, FileText } from 'lucide-react';
 import { Button } from './ui/button';
 import { Alert, AlertDescription } from './ui/alert';
+import { exportToPowerPoint } from '@/utils/pptxExport';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Props {
   client: ClientData;
@@ -30,6 +33,51 @@ export function ProposalPreview({ client, calculations, financial, technical, cu
 
   const handleExportPDF = () => {
     window.print();
+  };
+
+  const handleExportPowerPoint = async () => {
+    try {
+      toast.loading('Gerando apresentação PowerPoint...');
+      const proposalData = {
+        client,
+        technical,
+        currentCosts,
+        financial,
+        calculations
+      };
+      await exportToPowerPoint(proposalData);
+      toast.success('Apresentação PowerPoint gerada com sucesso!');
+    } catch (error) {
+      console.error('Erro ao exportar PowerPoint:', error);
+      toast.error('Erro ao gerar apresentação PowerPoint');
+    }
+  };
+
+  const handleSaveProposal = async () => {
+    try {
+      const proposalName = prompt('Digite um nome para esta proposta:');
+      if (!proposalName) return;
+
+      toast.loading('Salvando proposta...');
+      
+      const { error } = await supabase
+        .from('proposals')
+        .insert([{
+          proposal_name: proposalName,
+          client_data: client as any,
+          technical_data: technical as any,
+          current_costs: currentCosts as any,
+          financial_config: financial as any,
+          calculations: calculations as any
+        }]);
+
+      if (error) throw error;
+      
+      toast.success('Proposta salva com sucesso!');
+    } catch (error) {
+      console.error('Erro ao salvar proposta:', error);
+      toast.error('Erro ao salvar proposta');
+    }
   };
 
   return (
@@ -400,8 +448,15 @@ export function ProposalPreview({ client, calculations, financial, technical, cu
 
       {/* Action Buttons */}
       <div className="flex justify-center gap-4 no-print">
+        <Button onClick={handleSaveProposal} variant="outline" size="lg" className="gap-2">
+          Salvar no Banco de Dados
+        </Button>
         <Button onClick={handleExportPDF} size="lg" className="gap-2">
           Salvar Proposta (PDF)
+        </Button>
+        <Button onClick={handleExportPowerPoint} variant="secondary" size="lg" className="gap-2">
+          <FileText className="h-4 w-4" />
+          Exportar PowerPoint
         </Button>
       </div>
 

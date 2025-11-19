@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { ClientData, TechnicalData, CurrentCosts, FinancialConfig } from '@/types/proposal';
+import { ClientData, TechnicalData, CurrentCosts, FinancialConfig, ProposalData } from '@/types/proposal';
 import { ClientDataForm } from './forms/ClientDataForm';
 import { TechnicalDataForm } from './forms/TechnicalDataForm';
 import { CurrentCostsForm } from './forms/CurrentCostsForm';
 import { FinancialConfigForm } from './forms/FinancialConfigForm';
 import { ProposalPreview } from './ProposalPreview';
+import { ProposalHistory } from './ProposalHistory';
 import { Button } from './ui/button';
 import { calculateProposal } from '@/utils/proposalCalculations';
 import enermacLogo from '@/assets/enermac-logo.png';
@@ -51,6 +52,14 @@ export function ProposalForm() {
 
   const handlePrevious = () => {
     if (step > 1) setStep(step - 1);
+  };
+
+  const handleLoadProposal = (proposal: ProposalData) => {
+    setClientData(proposal.client);
+    setTechnicalData(proposal.technical);
+    setCurrentCosts(proposal.currentCosts);
+    setFinancialConfig(proposal.financial);
+    setStep(5); // Ir para a visualização da proposta
   };
 
   return (
@@ -102,13 +111,16 @@ export function ProposalForm() {
               <FinancialConfigForm data={financialConfig} onChange={setFinancialConfig} />
             )}
             {step === 5 && (
-              <ProposalPreview
-                client={clientData}
-                technical={technicalData}
-                currentCosts={currentCosts}
-                financial={financialConfig}
-                calculations={calculations}
-              />
+              <>
+                <ProposalHistory onLoadProposal={handleLoadProposal} />
+                <ProposalPreview
+                  client={clientData}
+                  technical={technicalData}
+                  currentCosts={currentCosts}
+                  financial={financialConfig}
+                  calculations={calculations}
+                />
+              </>
             )}
           </div>
 

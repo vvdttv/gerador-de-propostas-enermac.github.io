@@ -115,7 +115,12 @@ All colors MUST be HSL.
     -webkit-print-color-adjust: exact;
   }
   
-  .no-print {
+  .no-print, nav, header {
+    display: none !important;
+  }
+  
+  /* Esconder as etapas/marcações de progresso ao salvar PDF */
+  nav[aria-label], [role="navigation"], .steps-indicator {
     display: none !important;
   }
   
@@ -125,41 +130,9 @@ All colors MUST be HSL.
   
   .print\:break-after-page {
     page-break-after: always;
-    break-after: page;
   }
-
-  /* Hide step indicators when printing */
-  nav[aria-label="Progress"],
-  [role="navigation"] {
-    display: none !important;
-  }
-
-  /* Better card rendering in PDF */
-  .print\:bg-white {
-    background-color: white !important;
-  }
-
-  .print\:border-gray-300 {
-    border-color: #d1d5db !important;
-  }
-
-  .print\:text-black {
-    color: black !important;
-  }
-
-  .print\:text-gray-600 {
-    color: #4b5563 !important;
-  }
-
-  .print\:text-gray-700 {
-    color: #374151 !important;
-  }
-
-  .print\:text-gray-800 {
-    color: #1f2937 !important;
-  }
-
-  .print\:bg-gray-50 {
-    background-color: #f9fafb !important;
+  
+  .card {
+    page-break-inside: avoid;
   }
 }
