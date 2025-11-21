@@ -68,7 +68,7 @@ export function ProposalForm() {
         <div className="mb-8 text-center">
           <img src={enermacLogo} alt="Enermac" className="h-16 mx-auto mb-4" />
           <h1 className="text-4xl font-bold text-primary mb-2">Enermac</h1>
-          <p className="text-muted-foreground">Gerador de Propostas - Bioenergia</p>
+          <p className="text-muted-foreground">Gerador de Propostas</p>
         </div>
 
         <div className="max-w-4xl mx-auto">
