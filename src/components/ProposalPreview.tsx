@@ -7,6 +7,13 @@ import { Alert, AlertDescription } from './ui/alert';
 import { exportToPowerPoint } from '@/utils/pptxExport';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { 
+  clientDataSchema, 
+  technicalDataSchema, 
+  currentCostsSchema, 
+  financialConfigSchema, 
+  proposalNameSchema 
+} from '@/schemas/proposalSchemas';
 
 interface Props {
   client: ClientData;
@@ -58,16 +65,25 @@ export function ProposalPreview({ client, calculations, financial, technical, cu
       const proposalName = prompt('Digite um nome para esta proposta:');
       if (!proposalName) return;
 
+      // Validate proposal name
+      const validatedName = proposalNameSchema.parse(proposalName);
+
+      // Validate all data before saving
+      const validatedClient = clientDataSchema.parse(client);
+      const validatedTechnical = technicalDataSchema.parse(technical);
+      const validatedCurrentCosts = currentCostsSchema.parse(currentCosts);
+      const validatedFinancial = financialConfigSchema.parse(financial);
+
       toast.loading('Salvando proposta...');
       
       const { error } = await supabase
         .from('proposals')
         .insert([{
-          proposal_name: proposalName,
-          client_data: client as any,
-          technical_data: technical as any,
-          current_costs: currentCosts as any,
-          financial_config: financial as any,
+          proposal_name: validatedName,
+          client_data: validatedClient as any,
+          technical_data: validatedTechnical as any,
+          current_costs: validatedCurrentCosts as any,
+          financial_config: validatedFinancial as any,
           calculations: calculations as any
         }]);
 
@@ -76,7 +92,11 @@ export function ProposalPreview({ client, calculations, financial, technical, cu
       toast.success('Proposta salva com sucesso!');
     } catch (error) {
       console.error('Erro ao salvar proposta:', error);
-      toast.error('Erro ao salvar proposta');
+      if (error instanceof Error) {
+        toast.error(`Erro ao salvar: ${error.message}`);
+      } else {
+        toast.error('Erro ao salvar proposta');
+      }
     }
   };
 
