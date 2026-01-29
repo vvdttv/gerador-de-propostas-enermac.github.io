@@ -1,7 +1,8 @@
 import { ClientData, TechnicalData, CurrentCosts, FinancialConfig, ProposalCalculations } from '@/types/proposal';
+import { ExpandedCalculationResult } from '@/utils/expandedProposalCalculations';
 import { Card } from './ui/card';
 import { Separator } from './ui/separator';
-import { TrendingUp, DollarSign, Calendar, Zap, Leaf, AlertTriangle, CheckCircle2, User, Lightbulb, FileText } from 'lucide-react';
+import { TrendingUp, DollarSign, Calendar, Zap, Leaf, AlertTriangle, CheckCircle2, User, Lightbulb, FileText, BarChart3 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Alert, AlertDescription } from './ui/alert';
 import { exportToPowerPoint } from '@/utils/pptxExport';
@@ -14,6 +15,11 @@ import {
   financialConfigSchema, 
   proposalNameSchema 
 } from '@/schemas/proposalSchemas';
+import { FinancialIndicatorsDisplay } from './FinancialIndicatorsDisplay';
+import { CashFlowTable } from './CashFlowTable';
+import { CapexBreakdown } from './CapexBreakdown';
+import { OpexBreakdown } from './OpexBreakdown';
+import { ProposalExecutiveSummary } from './ProposalExecutiveSummary';
 
 interface Props {
   client: ClientData;
@@ -21,9 +27,10 @@ interface Props {
   currentCosts: CurrentCosts;
   financial: FinancialConfig;
   calculations: ProposalCalculations;
+  expandedCalculations?: ExpandedCalculationResult;
 }
 
-export function ProposalPreview({ client, calculations, financial, technical, currentCosts }: Props) {
+export function ProposalPreview({ client, calculations, financial, technical, currentCosts, expandedCalculations }: Props) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -50,7 +57,8 @@ export function ProposalPreview({ client, calculations, financial, technical, cu
         technical,
         currentCosts,
         financial,
-        calculations
+        calculations,
+        expandedCalculations
       };
       await exportToPowerPoint(proposalData);
       toast.success('Apresentação PowerPoint gerada com sucesso!');
@@ -102,11 +110,24 @@ export function ProposalPreview({ client, calculations, financial, technical, cu
 
   return (
     <div className="space-y-6 print:text-black">
-      {/* Header */}
-      <div className="text-center space-y-2 print:mb-8">
-        <h1 className="text-3xl font-bold text-primary print:text-black">PROPOSTA COMERCIAL</h1>
-        <p className="text-xl font-semibold">Enermac - Energia Renovável</p>
-        <p className="text-muted-foreground print:text-gray-600">Geração de Bioenergia através de Resíduos Orgânicos</p>
+      {/* Executive Summary - Print Only (First Page) */}
+      <ProposalExecutiveSummary 
+        client={client}
+        technical={technical}
+        currentCosts={currentCosts}
+        financial={financial}
+        calculations={calculations}
+        expandedCalculations={expandedCalculations}
+      />
+
+      {/* Full Details - Screen and Additional Print Pages */}
+      <div className="screen-only md:block">
+        {/* Header */}
+        <div className="text-center space-y-2 print:mb-8">
+          <h1 className="text-3xl font-bold text-primary print:text-black">PROPOSTA COMERCIAL</h1>
+          <p className="text-xl font-semibold">Enermac - Energia Renovável</p>
+          <p className="text-muted-foreground print:text-gray-600">Geração de Bioenergia através de Resíduos Orgânicos</p>
+        </div>
       </div>
 
       <Separator className="print:hidden" />
@@ -466,6 +487,40 @@ export function ProposalPreview({ client, calculations, financial, technical, cu
         </div>
       </Card>
 
+      {/* Financial Indicators - TIR, VPL, Payback */}
+      {expandedCalculations && (
+        <Card className="p-6 print:break-after-page print:bg-white print:border-gray-300">
+          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-primary print:text-black" />
+            Indicadores Financeiros Avançados
+          </h2>
+          <FinancialIndicatorsDisplay 
+            cashFlow={expandedCalculations.cashFlow} 
+            totalInvestment={expandedCalculations.capex.total} 
+          />
+        </Card>
+      )}
+
+      {/* CAPEX Breakdown */}
+      {expandedCalculations && (
+        <Card className="p-6 print:break-after-page print:bg-white print:border-gray-300">
+          <CapexBreakdown capex={expandedCalculations.capex} />
+        </Card>
+      )}
+
+      {/* OPEX Breakdown */}
+      {expandedCalculations && (
+        <Card className="p-6 print:break-after-page print:bg-white print:border-gray-300">
+          <OpexBreakdown opex={expandedCalculations.opex} />
+        </Card>
+      )}
+
+      {/* Cash Flow Table */}
+      {expandedCalculations && (
+        <Card className="p-6 print:break-after-page print:bg-white print:border-gray-300">
+          <CashFlowTable cashFlow={expandedCalculations.cashFlow} />
+        </Card>
+      )}
       {/* Action Buttons */}
       <div className="flex justify-center gap-4 no-print">
         <Button onClick={handleSaveProposal} variant="outline" size="lg" className="gap-2">

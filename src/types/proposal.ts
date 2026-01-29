@@ -29,6 +29,8 @@ export interface TechnicalData {
   hasThreePhaseGrid: boolean;
   gridDistance: number;
   state: string;
+  hydraulicRetentionTime: number; // TRH - Tempo de Retenção Hidráulica (dias)
+  targetOperatingHours: number; // Horas de operação diária do gerador
 }
 
 export interface CurrentCosts {
@@ -85,4 +87,5 @@ export interface ProposalData {
   currentCosts: CurrentCosts;
   financial: FinancialConfig;
   calculations: ProposalCalculations;
+  expandedCalculations?: import('@/utils/expandedProposalCalculations').ExpandedCalculationResult;
 }

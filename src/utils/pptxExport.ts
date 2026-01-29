@@ -1,5 +1,6 @@
 import pptxgen from 'pptxgenjs';
 import { ProposalData } from '@/types/proposal';
+import { formatCurrency, formatPercentage } from '@/utils/financialIndicators';
 
 export async function exportToPowerPoint(data: ProposalData) {
   const pptx = new pptxgen();
@@ -9,6 +10,7 @@ export async function exportToPowerPoint(data: ProposalData) {
   const subtitleStyle = { fontSize: 16, bold: true, color: '2d5a3d' };
   const textStyle = { fontSize: 12, color: '000000' };
   const highlightStyle = { fontSize: 14, bold: true, color: '1a472a' };
+  const greenStyle = { fontSize: 14, bold: true, color: '22c55e' };
 
   // Slide 1 - Capa
   const slide1 = pptx.addSlide();
@@ -161,19 +163,56 @@ export async function exportToPowerPoint(data: ProposalData) {
     fontSize: 14,
   });
 
-  // Slide 8 - Viabilidade Econômica
+  // Slide 8 - Indicadores Financeiros (TIR, VPL, Payback)
   const slide8 = pptx.addSlide();
-  slide8.addText('Viabilidade Econômica', { x: 0.5, y: 0.5, w: 9, h: 0.5, ...titleStyle });
+  slide8.addText('Indicadores Financeiros', { x: 0.5, y: 0.5, w: 9, h: 0.5, ...titleStyle });
+  
+  const cashFlow = data.expandedCalculations?.cashFlow;
+  const tirValue = cashFlow?.tir ?? 0;
+  const vplValue = cashFlow?.vpl ?? 0;
+  const paybackSimple = cashFlow?.paybackSimple ?? data.calculations.paybackYears;
+  const paybackDiscounted = cashFlow?.paybackDiscounted ?? paybackSimple;
+  
+  const financialIndicators = [
+    [{ text: 'TIR (Taxa Interna de Retorno):' }, { text: formatPercentage(tirValue) }],
+    [{ text: 'VPL (Valor Presente Líquido):' }, { text: formatCurrency(vplValue) }],
+    [{ text: 'Payback Simples:' }, { text: `${paybackSimple.toFixed(1)} anos` }],
+    [{ text: 'Payback Descontado:' }, { text: `${paybackDiscounted.toFixed(1)} anos` }],
+    [{ text: 'ROI em 20 anos:' }, { text: `${data.calculations.roi20Years.toFixed(2)}%` }],
+  ];
+  
+  slide8.addTable(financialIndicators, {
+    x: 0.5,
+    y: 1.5,
+    w: 9,
+    colW: [5, 4],
+    border: { pt: 1, color: 'd0d0d0' },
+    fill: { color: 'f8faf9' },
+    fontSize: 14,
+  });
+  
+  // Badge de viabilidade
+  const isGoodTIR = cashFlow ? tirValue > cashFlow.tmaUsed : true;
+  const isGoodVPL = vplValue > 0;
+  slide8.addText(isGoodTIR && isGoodVPL ? '✓ INDICADORES POSITIVOS' : '⚠ ATENÇÃO AOS INDICADORES', {
+    x: 0.5, y: 4.5, w: 9, h: 0.5,
+    fontSize: 14,
+    bold: true,
+    color: isGoodTIR && isGoodVPL ? '22c55e' : 'f59e0b',
+    align: 'center'
+  });
+
+  // Slide 9 - Viabilidade Econômica
+  const slide9 = pptx.addSlide();
+  slide9.addText('Viabilidade Econômica', { x: 0.5, y: 0.5, w: 9, h: 0.5, ...titleStyle });
   
   const viabilityData = [
     [{ text: 'Economia Mensal:' }, { text: `R$ ${data.calculations.monthlySavings.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` }],
     [{ text: 'Receita Líquida Mensal:' }, { text: `R$ ${data.calculations.monthlyRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` }],
     [{ text: 'Economia Anual:' }, { text: `R$ ${data.calculations.annualSavings.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` }],
-    [{ text: 'Payback:' }, { text: `${data.calculations.paybackYears.toFixed(1)} anos` }],
-    [{ text: 'ROI (20 anos):' }, { text: `${data.calculations.roi20Years.toFixed(2)}%` }],
   ];
   
-  slide8.addTable(viabilityData, {
+  slide9.addTable(viabilityData, {
     x: 0.5,
     y: 1.5,
     w: 9,
@@ -183,9 +222,47 @@ export async function exportToPowerPoint(data: ProposalData) {
     fontSize: 14,
   });
 
-  // Slide 9 - Tributação
-  const slide9 = pptx.addSlide();
-  slide9.addText('Tributação', { x: 0.5, y: 0.5, w: 9, h: 0.5, ...titleStyle });
+  // Slide 10 - Fluxo de Caixa Resumido (se disponível)
+  if (data.expandedCalculations?.cashFlow) {
+    const slide10 = pptx.addSlide();
+    slide10.addText('Fluxo de Caixa Projetado (Resumo)', { x: 0.5, y: 0.5, w: 9, h: 0.5, ...titleStyle });
+    
+    const cfYears = data.expandedCalculations.cashFlow.years;
+    const yearsToShow = [1, 5, 10, 15, 20].filter(y => y <= cfYears.length);
+    
+    const cashFlowSummary = yearsToShow.map(yearNum => {
+      const year = cfYears[yearNum - 1];
+      return [
+        { text: `Ano ${yearNum}` },
+        { text: formatCurrency(year?.totalRevenue || 0) },
+        { text: formatCurrency(year?.simpleCashFlow || 0) },
+        { text: formatCurrency(year?.accumulatedCashFlow || 0) }
+      ];
+    });
+    
+    slide10.addTable([
+      [{ text: 'Período', options: { bold: true } }, { text: 'Receita', options: { bold: true } }, { text: 'Fluxo', options: { bold: true } }, { text: 'Acumulado', options: { bold: true } }],
+      ...cashFlowSummary
+    ], {
+      x: 0.5,
+      y: 1.5,
+      w: 9,
+      colW: [2, 2.5, 2.25, 2.25],
+      border: { pt: 1, color: 'd0d0d0' },
+      fill: { color: 'f8faf9' },
+      fontSize: 11,
+    });
+    
+    slide10.addText(`VPL Final: ${formatCurrency(data.expandedCalculations.cashFlow.vpl)}`, {
+      x: 0.5, y: 4.5, w: 9, h: 0.4,
+      ...greenStyle,
+      align: 'center'
+    });
+  }
+
+  // Slide 11 - Tributação
+  const slide11 = pptx.addSlide();
+  slide11.addText('Tributação', { x: 0.5, y: 0.5, w: 9, h: 0.5, ...titleStyle });
   
   const taxData = [
     [{ text: 'Taxa de Tributação:' }, { text: `${(data.calculations.taxation.energyTaxRate * 100).toFixed(0)}%` }],
@@ -194,7 +271,7 @@ export async function exportToPowerPoint(data: ProposalData) {
     [{ text: 'Estado:' }, { text: data.technical.state }],
   ];
   
-  slide9.addTable(taxData, {
+  slide11.addTable(taxData, {
     x: 0.5,
     y: 1.5,
     w: 9,
@@ -204,58 +281,58 @@ export async function exportToPowerPoint(data: ProposalData) {
     fontSize: 14,
   });
 
-  // Slide 10 - Status de Viabilidade
-  const slide10 = pptx.addSlide();
-  slide10.addText('Status do Projeto', { x: 0.5, y: 0.5, w: 9, h: 0.5, ...titleStyle });
+  // Slide 12 - Status de Viabilidade
+  const slide12 = pptx.addSlide();
+  slide12.addText('Status do Projeto', { x: 0.5, y: 0.5, w: 9, h: 0.5, ...titleStyle });
   
   if (data.calculations.isViable) {
-    slide10.addText('✓ PROJETO VIÁVEL', { 
+    slide12.addText('✓ PROJETO VIÁVEL', { 
       x: 0.5, y: 2, w: 9, h: 1, 
       fontSize: 28, 
       bold: true, 
       color: '22c55e', 
       align: 'center' 
     });
-    slide10.addText('O projeto atende todos os critérios de viabilidade técnica e econômica.', { 
+    slide12.addText('O projeto atende todos os critérios de viabilidade técnica e econômica.', { 
       x: 0.5, y: 3.5, w: 9, h: 1, 
       ...textStyle, 
       align: 'center' 
     });
   } else {
-    slide10.addText('⚠ PROJETO INVIÁVEL NAS CONDIÇÕES ATUAIS', { 
+    slide12.addText('⚠ PROJETO INVIÁVEL NAS CONDIÇÕES ATUAIS', { 
       x: 0.5, y: 1.5, w: 9, h: 0.8, 
       fontSize: 24, 
       bold: true, 
       color: 'ef4444', 
       align: 'center' 
     });
-    slide10.addText('Problemas Identificados:', { 
+    slide12.addText('Problemas Identificados:', { 
       x: 0.5, y: 2.8, w: 9, h: 0.4, 
       ...subtitleStyle 
     });
     
     const issuesText = data.calculations.viabilityIssues.map((issue, i) => `${i + 1}. ${issue}`).join('\n');
-    slide10.addText(issuesText, { 
+    slide12.addText(issuesText, { 
       x: 0.5, y: 3.3, w: 9, h: 2, 
       ...textStyle, 
       valign: 'top' 
     });
   }
 
-  // Slide 11 - Validade
-  const slide11 = pptx.addSlide();
-  slide11.background = { color: 'f0f4f1' };
-  slide11.addText('Validade da Proposta', { 
+  // Slide 13 - Validade
+  const slide13 = pptx.addSlide();
+  slide13.background = { color: 'f0f4f1' };
+  slide13.addText('Validade da Proposta', { 
     x: 0.5, y: 2.5, w: 9, h: 0.5, 
     ...titleStyle, 
     align: 'center' 
   });
-  slide11.addText(`Data de Emissão: ${data.calculations.proposalDate}`, { 
+  slide13.addText(`Data de Emissão: ${data.calculations.proposalDate}`, { 
     x: 0.5, y: 3.5, w: 9, h: 0.4, 
     ...textStyle, 
     align: 'center' 
   });
-  slide11.addText(`Validade até: ${data.calculations.validityDate}`, { 
+  slide13.addText(`Validade até: ${data.calculations.validityDate}`, { 
     x: 0.5, y: 4, w: 9, h: 0.4, 
     ...textStyle, 
     align: 'center' 

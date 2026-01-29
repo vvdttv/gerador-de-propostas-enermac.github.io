@@ -245,6 +245,50 @@ export function TechnicalDataForm({ data, onChange }: Props) {
           ))}
         </div>
 
+        {/* Parâmetros Técnicos do Biodigestor */}
+        <div className="space-y-4 p-4 bg-secondary/10 rounded-lg border">
+          <h3 className="font-semibold text-lg">Parâmetros do Biodigestor</h3>
+          
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="hydraulicRetentionTime">Tempo de Retenção Hidráulica (TRH) *</Label>
+              <Input
+                id="hydraulicRetentionTime"
+                type="number"
+                min="7"
+                max="60"
+                step="1"
+                value={data.hydraulicRetentionTime || 30}
+                onChange={(e) => handleChange('hydraulicRetentionTime', parseInt(e.target.value) || 30)}
+                placeholder="Ex: 30"
+                required
+              />
+              <p className="text-sm text-muted-foreground">
+                Tempo em dias que a biomassa permanece no biodigestor. Padrão: 30 dias. Vinhaça: 7 dias.
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="targetOperatingHours">Horas de Operação Diária *</Label>
+              <Input
+                id="targetOperatingHours"
+                type="number"
+                min="4"
+                max="24"
+                step="0.5"
+                value={data.targetOperatingHours || 14}
+                onChange={(e) => handleChange('targetOperatingHours', parseFloat(e.target.value) || 14)}
+                placeholder="Ex: 14"
+                required
+              />
+              <p className="text-sm text-muted-foreground">
+                Horas diárias de funcionamento do gerador. Recomendado: 14h para vida útil prolongada.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Infraestrutura Elétrica */}
         <div className="space-y-4 p-4 bg-secondary/10 rounded-lg border">
           <h3 className="font-semibold text-lg">Infraestrutura Elétrica</h3>
           

@@ -7,7 +7,7 @@ import { FinancialConfigForm } from './forms/FinancialConfigForm';
 import { ProposalPreview } from './ProposalPreview';
 import { ProposalHistory } from './ProposalHistory';
 import { Button } from './ui/button';
-import { calculateProposal } from '@/utils/proposalCalculations';
+import { calculateExpandedProposal } from '@/utils/expandedProposalCalculations';
 import enermacLogo from '@/assets/enermac-logo.png';
 
 export function ProposalForm() {
@@ -28,7 +28,9 @@ export function ProposalForm() {
     otherSubstrates: [],
     hasThreePhaseGrid: true,
     gridDistance: 0,
-    state: ''
+    state: '',
+    hydraulicRetentionTime: 30,
+    targetOperatingHours: 14
   });
   const [currentCosts, setCurrentCosts] = useState<CurrentCosts>({
     energyCostKwh: 0.79,
@@ -42,7 +44,14 @@ export function ProposalForm() {
     interestType: 'compound'
   });
 
-  const calculations = calculateProposal(technicalData, currentCosts, financialConfig);
+  const expandedCalc = calculateExpandedProposal(
+    technicalData, 
+    currentCosts, 
+    financialConfig,
+    technicalData.hydraulicRetentionTime || 30,
+    technicalData.targetOperatingHours || 14
+  );
+  const calculations = expandedCalc.basic;
 
   const totalSteps = 5;
 
@@ -119,6 +128,7 @@ export function ProposalForm() {
                   currentCosts={currentCosts}
                   financial={financialConfig}
                   calculations={calculations}
+                  expandedCalculations={expandedCalc}
                 />
               </>
             )}
