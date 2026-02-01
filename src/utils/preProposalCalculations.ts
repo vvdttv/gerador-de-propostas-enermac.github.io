@@ -1,4 +1,4 @@
-import { PreProposalInput, PreProposalResult, PaymentOption } from '@/types/preProposal';
+import { PreProposalInput, PreProposalResult, EnermacPaymentPlan, PaymentStage } from '@/types/preProposal';
 import { LIVESTOCK_BIOGAS_DATA, getLivestockBiogasData } from '@/data/biodigesterDatabase';
 import { selectBiodigester } from '@/data/biodigesterDatabase';
 import { selectGenerator } from '@/data/generatorDatabase';
@@ -57,8 +57,8 @@ export function calculatePreProposal(input: PreProposalInput): PreProposalResult
   const monthlySavings = monthlyEnergyProduction * input.energyCostPerKwh;
   const annualSavings = monthlySavings * 12;
   
-  // 7. Gerar opções de pagamento
-  const paymentOptions = generatePaymentOptions(totalInvestment, monthlySavings);
+  // 7. Gerar plano de pagamento Enermac
+  const paymentPlan = generateEnermacPaymentPlan(totalInvestment);
   
   // 8. Calcular indicadores de ROI
   const roi = calculateROIIndicators(totalInvestment, annualSavings);
@@ -93,88 +93,58 @@ export function calculatePreProposal(input: PreProposalInput): PreProposalResult
     },
     monthlySavings,
     annualSavings,
-    paymentOptions,
+    paymentPlan,
     roi,
     isViable,
     viabilityMessage
   };
 }
 
-function generatePaymentOptions(totalInvestment: number, monthlySavings: number): PaymentOption[] {
-  const options: PaymentOption[] = [];
-  
-  // Opção 1: À Vista (10% desconto)
-  const discountRate = 0.10;
-  const cashPrice = totalInvestment * (1 - discountRate);
-  options.push({
-    name: 'À Vista',
-    description: '10% de desconto no pagamento à vista',
-    downPaymentPercentage: 100,
-    downPaymentValue: cashPrice,
-    installments: 1,
-    monthlyInstallment: 0,
-    totalPaid: cashPrice,
-    interestRate: 0,
-    monthlyBalance: monthlySavings
-  });
-  
-  // Opção 2: 30% entrada + 60x (1.2% a.m.)
-  const option2Down = totalInvestment * 0.30;
-  const option2Financed = totalInvestment * 0.70;
-  const option2Rate = 0.012;
-  const option2Installment = calculatePriceInstallment(option2Financed, option2Rate, 60);
-  options.push({
-    name: '30% + 60x',
-    description: '30% de entrada + 60 parcelas fixas',
-    downPaymentPercentage: 30,
-    downPaymentValue: option2Down,
-    installments: 60,
-    monthlyInstallment: option2Installment,
-    totalPaid: option2Down + (option2Installment * 60),
-    interestRate: 1.2,
-    monthlyBalance: monthlySavings - option2Installment
-  });
-  
-  // Opção 3: 20% entrada + 84x (1.0% a.m.)
-  const option3Down = totalInvestment * 0.20;
-  const option3Financed = totalInvestment * 0.80;
-  const option3Rate = 0.010;
-  const option3Installment = calculatePriceInstallment(option3Financed, option3Rate, 84);
-  options.push({
-    name: '20% + 84x',
-    description: '20% de entrada + 84 parcelas (7 anos)',
-    downPaymentPercentage: 20,
-    downPaymentValue: option3Down,
-    installments: 84,
-    monthlyInstallment: option3Installment,
-    totalPaid: option3Down + (option3Installment * 84),
-    interestRate: 1.0,
-    monthlyBalance: monthlySavings - option3Installment
-  });
-  
-  // Opção 4: 10% entrada + 120x (0.9% a.m.) - Financiamento BNDES
-  const option4Down = totalInvestment * 0.10;
-  const option4Financed = totalInvestment * 0.90;
-  const option4Rate = 0.009;
-  const option4Installment = calculatePriceInstallment(option4Financed, option4Rate, 120);
-  options.push({
-    name: 'BNDES 10 anos',
-    description: '10% entrada + 120x (linha verde)',
-    downPaymentPercentage: 10,
-    downPaymentValue: option4Down,
-    installments: 120,
-    monthlyInstallment: option4Installment,
-    totalPaid: option4Down + (option4Installment * 120),
-    interestRate: 0.9,
-    monthlyBalance: monthlySavings - option4Installment
-  });
-  
-  return options;
-}
+function generateEnermacPaymentPlan(totalInvestment: number): EnermacPaymentPlan {
+  const stages: PaymentStage[] = [
+    {
+      name: 'Sinal',
+      percentage: 5,
+      value: totalInvestment * 0.05,
+      timing: 'Na assinatura da proposta',
+      condition: undefined
+    },
+    {
+      name: 'Contrato',
+      percentage: 30,
+      value: totalInvestment * 0.30,
+      timing: 'Até 3 dias úteis após assinatura',
+      condition: undefined
+    },
+    {
+      name: 'Impermeabilização',
+      percentage: 30,
+      value: totalInvestment * 0.30,
+      timing: '30 dias após assinatura do contrato',
+      condition: 'Condicionado à impermeabilização do biodigestor'
+    },
+    {
+      name: 'Gerador',
+      percentage: 30,
+      value: totalInvestment * 0.30,
+      timing: '30 dias após impermeabilização',
+      condition: 'Condicionado ao embarque do gerador (com seguro)'
+    },
+    {
+      name: 'Start-up',
+      percentage: 5,
+      value: totalInvestment * 0.05,
+      timing: '30 dias após recebimento do gerador',
+      condition: 'Início de operação da usina'
+    }
+  ];
 
-function calculatePriceInstallment(principal: number, monthlyRate: number, months: number): number {
-  if (monthlyRate === 0) return principal / months;
-  return principal * (monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1);
+  return {
+    name: 'Parcelamento Direto Enermac',
+    description: 'Pagamento em 5 etapas vinculadas ao andamento do projeto',
+    stages,
+    totalValue: totalInvestment
+  };
 }
 
 function calculateROIIndicators(totalInvestment: number, annualSavings: number) {
