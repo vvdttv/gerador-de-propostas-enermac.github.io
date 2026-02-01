@@ -51,10 +51,29 @@ export function PreProposalForm({ onCalculate }: Props) {
   const handleAutoFill = (viability: 'viable' | 'nonViable') => {
     const mockData = generateMockPreProposalInput(viability);
 
-    // Critério indispensável: nunca permitir classe vazia/inválida no auto-preenchimento.
-    const type = mockData.livestockType as LivestockType;
-    const ensuredClass = ensureLivestockClass(type, mockData.livestockClass);
-    setData({ ...mockData, livestockClass: ensuredClass });
+    // Critério indispensável: NUNCA permitir classe vazia/inválida.
+    // Validação defensiva - se por algum motivo o tipo vier vazio, forçamos 'suino'.
+    const validTypes: LivestockType[] = ['suino', 'bovino', 'aves'];
+    const rawType = mockData.livestockType;
+    const type: LivestockType = validTypes.includes(rawType as LivestockType) 
+      ? (rawType as LivestockType) 
+      : 'suino';
+    
+    // Garantir classe válida para o tipo
+    const classOptions = LIVESTOCK_CLASSES[type];
+    const validClassValues = classOptions.map(c => c.value);
+    const rawClass = mockData.livestockClass;
+    const finalClass = validClassValues.includes(rawClass) 
+      ? rawClass 
+      : classOptions[0].value;
+
+    console.log('[AutoFill] Type:', type, 'Class:', finalClass);
+
+    setData({
+      ...mockData,
+      livestockType: type,
+      livestockClass: finalClass,
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
