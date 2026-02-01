@@ -19,16 +19,19 @@ export interface PreProposalInput {
   gridDistance: number;
 }
 
-export interface PaymentOption {
+export interface PaymentStage {
+  name: string;
+  percentage: number;
+  value: number;
+  timing: string;
+  condition?: string;
+}
+
+export interface EnermacPaymentPlan {
   name: string;
   description: string;
-  downPaymentPercentage: number;
-  downPaymentValue: number;
-  installments: number;
-  monthlyInstallment: number;
-  totalPaid: number;
-  interestRate: number;
-  monthlyBalance: number; // Economia - Parcela
+  stages: PaymentStage[];
+  totalValue: number;
 }
 
 export interface PreProposalResult {
@@ -49,8 +52,8 @@ export interface PreProposalResult {
   monthlySavings: number;
   annualSavings: number;
   
-  // Opções de pagamento
-  paymentOptions: PaymentOption[];
+  // Plano de pagamento Enermac
+  paymentPlan: EnermacPaymentPlan;
   
   // Indicadores de ROI
   roi: {

@@ -142,60 +142,44 @@ export function PreProposalResultView({ result, input, onBack, onSwitchToSimple 
         </div>
       </Card>
 
-      {/* 2. Opções de Pagamento */}
+      {/* 2. Plano de Pagamento Enermac */}
       <Card className="p-6">
         <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
           <CreditCard className="h-5 w-5 text-primary" />
-          2. Opções de Pagamento
+          2. Plano de Pagamento Direto Enermac
         </h2>
         
+        <p className="text-muted-foreground mb-6">
+          {result.paymentPlan.description}
+        </p>
+        
         <div className="space-y-4">
-          {result.paymentOptions.map((option, index) => (
+          {result.paymentPlan.stages.map((stage, index) => (
             <div 
               key={index} 
-              className={`p-4 rounded-lg border-2 ${
-                option.monthlyBalance >= 0 
-                  ? 'border-primary/30 bg-primary/5' 
-                  : 'border-muted bg-muted/30'
-              }`}
+              className="p-4 rounded-lg border-2 border-muted bg-muted/30"
             >
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-lg">{option.name}</h3>
-                    {option.monthlyBalance >= 0 && (
-                      <Badge variant="default" className="text-xs">Recomendado</Badge>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground font-bold shrink-0">
+                    {index + 1}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-lg">{stage.name}</h3>
+                    <p className="text-sm text-muted-foreground">{stage.timing}</p>
+                    {stage.condition && (
+                      <p className="text-xs text-primary mt-1">{stage.condition}</p>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground">{option.description}</p>
                 </div>
                 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Entrada</p>
-                    <p className="font-semibold">{formatCurrency(option.downPaymentValue)}</p>
-                    <p className="text-xs text-muted-foreground">({option.downPaymentPercentage}%)</p>
+                <div className="flex items-center gap-6">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-primary">{stage.percentage}%</p>
+                    <p className="text-xs text-muted-foreground">do valor</p>
                   </div>
-                  {option.installments > 1 && (
-                    <>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Parcela</p>
-                        <p className="font-semibold">{formatCurrency(option.monthlyInstallment)}</p>
-                        <p className="text-xs text-muted-foreground">{option.installments}x</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Taxa</p>
-                        <p className="font-semibold">{formatNumber(option.interestRate)}%</p>
-                        <p className="text-xs text-muted-foreground">ao mês</p>
-                      </div>
-                    </>
-                  )}
-                  <div>
-                    <p className="text-xs text-muted-foreground">Saldo Mensal</p>
-                    <p className={`font-bold ${option.monthlyBalance >= 0 ? 'text-primary' : 'text-destructive'}`}>
-                      {formatCurrency(option.monthlyBalance)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">economia - parcela</p>
+                  <div className="text-center">
+                    <p className="text-xl font-semibold">{formatCurrency(stage.value)}</p>
                   </div>
                 </div>
               </div>
@@ -203,9 +187,19 @@ export function PreProposalResultView({ result, input, onBack, onSwitchToSimple 
           ))}
         </div>
 
+        <Separator className="my-6" />
+
+        <div className="flex justify-between items-center p-4 bg-primary/5 rounded-lg">
+          <div>
+            <p className="font-semibold">Valor Total do Investimento</p>
+            <p className="text-sm text-muted-foreground">Sem juros - Parcelamento direto</p>
+          </div>
+          <p className="text-2xl font-bold text-primary">{formatCurrency(result.paymentPlan.totalValue)}</p>
+        </div>
+
         <p className="text-xs text-muted-foreground mt-4">
-          * O saldo mensal representa a diferença entre a economia gerada e a parcela do financiamento. 
-          Valores positivos indicam que o projeto "se paga" desde o primeiro mês.
+          * Atrasos na impermeabilização ou no embarque do gerador prorrogam proporcionalmente o prazo de pagamento.
+          O embarque do gerador conta com seguro garantindo a entrega.
         </p>
       </Card>
 

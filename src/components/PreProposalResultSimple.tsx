@@ -28,15 +28,8 @@ export function PreProposalResultSimple({ result, input, onBack, onSwitchToDetai
     }).format(value);
   };
 
-  // Encontrar a melhor opção de pagamento (que se paga sozinha)
-  const bestOption = result.paymentOptions.find(opt => opt.monthlyBalance >= 0) || result.paymentOptions[0];
-  
-  // Calcular meses até começar a lucrar
-  const monthsToProfit = bestOption.installments > 1 
-    ? (bestOption.monthlyBalance >= 0 ? 1 : Math.ceil(result.totalInvestment / result.monthlySavings))
-    : Math.ceil(result.totalInvestment / result.monthlySavings);
-
   const paybackMonths = Math.round(result.roi.paybackYears * 12);
+  const { paymentPlan } = result;
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
@@ -50,32 +43,44 @@ export function PreProposalResultSimple({ result, input, onBack, onSwitchToDetai
         </p>
       </div>
 
-      {/* Card Principal - Quanto Vai Pagar */}
+      {/* Card Principal - Plano de Pagamento */}
       <Card className="p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
         <div className="text-center space-y-4">
           <div className="inline-flex items-center gap-2 text-primary">
             <Wallet className="h-6 w-6" />
-            <span className="text-lg font-semibold">Quanto você vai pagar?</span>
+            <span className="text-lg font-semibold">Como funciona o pagamento?</span>
           </div>
           
-          <div className="py-4">
-            <p className="text-4xl md:text-5xl font-bold text-primary">
-              {formatCurrency(bestOption.monthlyInstallment)}
-            </p>
-            <p className="text-lg text-muted-foreground mt-1">
-              por mês, em {bestOption.installments}x
-            </p>
+          <p className="text-sm text-muted-foreground">
+            Parcelamento direto com a Enermac em 5 etapas
+          </p>
+
+          <div className="space-y-3 text-left">
+            {paymentPlan.stages.map((stage, index) => (
+              <div key={index} className="flex items-center gap-3 p-3 bg-background/80 rounded-lg">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold text-sm shrink-0">
+                  {index + 1}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold">{stage.name}</span>
+                    <span className="font-bold text-primary">{stage.percentage}%</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground truncate">{stage.timing}</p>
+                </div>
+                <span className="text-sm font-semibold whitespace-nowrap">{formatCurrency(stage.value)}</span>
+              </div>
+            ))}
           </div>
 
-          <div className="bg-background/80 rounded-lg p-4">
-            <p className="text-sm text-muted-foreground">Entrada de</p>
-            <p className="text-2xl font-bold">{formatCurrency(bestOption.downPaymentValue)}</p>
-            <p className="text-xs text-muted-foreground">({bestOption.downPaymentPercentage}% do total)</p>
+          <div className="pt-2 border-t">
+            <p className="text-sm text-muted-foreground">Investimento total</p>
+            <p className="text-2xl font-bold text-primary">{formatCurrency(paymentPlan.totalValue)}</p>
           </div>
         </div>
       </Card>
 
-      {/* Quando Começa a Ganhar */}
+      {/* Quando Começa a Economizar */}
       <Card className="p-6">
         <div className="flex items-start gap-4">
           <div className="p-3 rounded-full bg-primary/10">
@@ -83,28 +88,16 @@ export function PreProposalResultSimple({ result, input, onBack, onSwitchToDetai
           </div>
           <div className="flex-1">
             <h2 className="text-lg font-bold mb-2">Quando começo a economizar?</h2>
-            {bestOption.monthlyBalance >= 0 ? (
-              <div className="space-y-2">
-                <p className="text-2xl font-bold text-primary flex items-center gap-2">
-                  <CheckCircle className="h-6 w-6" />
-                  Já no primeiro mês!
-                </p>
-                <p className="text-muted-foreground">
-                  Sua economia será <strong>{formatCurrency(result.monthlySavings)}/mês</strong>. 
-                  Como a parcela é menor que isso, você já começa ganhando 
-                  <strong className="text-primary"> {formatCurrency(bestOption.monthlyBalance)}/mês</strong>.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <p className="text-2xl font-bold text-primary">
-                  Em aproximadamente {paybackMonths} meses
-                </p>
-                <p className="text-muted-foreground">
-                  Depois disso, toda a economia de <strong>{formatCurrency(result.monthlySavings)}/mês</strong> fica no seu bolso!
-                </p>
-              </div>
-            )}
+            <div className="space-y-2">
+              <p className="text-2xl font-bold text-primary flex items-center gap-2">
+                <CheckCircle className="h-6 w-6" />
+                {paybackMonths <= 12 ? 'Em menos de 1 ano!' : `Em aproximadamente ${paybackMonths} meses`}
+              </p>
+              <p className="text-muted-foreground">
+                Sua economia será de <strong>{formatCurrency(result.monthlySavings)}/mês</strong>. 
+                Após quitar o investimento, esse valor fica todo no seu bolso!
+              </p>
+            </div>
           </div>
         </div>
       </Card>
