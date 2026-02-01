@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ClientData, TechnicalData, CurrentCosts, FinancialConfig, ProposalData } from '@/types/proposal';
 import { ClientDataForm } from './forms/ClientDataForm';
 import { TechnicalDataForm } from './forms/TechnicalDataForm';
@@ -9,6 +10,7 @@ import { ProposalHistory } from './ProposalHistory';
 import { Button } from './ui/button';
 import { calculateExpandedProposal } from '@/utils/expandedProposalCalculations';
 import enermacLogo from '@/assets/enermac-logo.png';
+import { Calculator } from 'lucide-react';
 
 export function ProposalForm() {
   const [step, setStep] = useState(1);
@@ -77,7 +79,14 @@ export function ProposalForm() {
         <div className="mb-8 text-center">
           <img src={enermacLogo} alt="Enermac" className="h-16 mx-auto mb-4" />
           <h1 className="text-4xl font-bold text-primary mb-2">Enermac</h1>
-          <p className="text-muted-foreground">Gerador de Propostas</p>
+          <p className="text-muted-foreground mb-4">Gerador de Propostas</p>
+          
+          <Link to="/pre-proposta">
+            <Button variant="outline" className="gap-2">
+              <Calculator className="h-4 w-4" />
+              Simulador Rápido (Pré-Proposta)
+            </Button>
+          </Link>
         </div>
 
         <div className="max-w-4xl mx-auto">
