@@ -1,18 +1,18 @@
 import type { PreProposalInput, PreProposalResult } from '@/types/preProposal';
 import { calculatePreProposal } from './preProposalCalculations';
 
-// Configurações para gerar dados realistas
+// Configurações para gerar dados realistas (alinhado com PreProposalForm)
 const LIVESTOCK_CONFIGS = {
   suino: {
-    classes: ['Suíno - Terminação', 'Suíno - UPL', 'Suíno - Matriz', 'Suíno - Leitão'],
+    classes: ['Matriz', 'Crechário (Lâmina d\'água)', 'Terminação/Maraã'],
     quantityRange: { viable: { min: 500, max: 5000 }, nonViable: { min: 50, max: 300 } }
   },
   bovino: {
-    classes: ['Bovino - Confinamento', 'Bovino - Leite'],
+    classes: ['Matriz UPD', 'Terminação Confinamento'],
     quantityRange: { viable: { min: 200, max: 2000 }, nonViable: { min: 20, max: 100 } }
   },
   aves: {
-    classes: ['Frango de Corte', 'Galinha Poedeira'],
+    classes: ['Poedeira', 'Frango de Corte'],
     quantityRange: { viable: { min: 50000, max: 200000 }, nonViable: { min: 5000, max: 20000 } }
   }
 };

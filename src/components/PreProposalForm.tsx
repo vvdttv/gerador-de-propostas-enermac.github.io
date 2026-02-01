@@ -6,7 +6,14 @@ import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
-import { Calculator, ArrowRight } from 'lucide-react';
+import { Calculator, ArrowRight, Wand2, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { generateMockPreProposalInput } from '@/utils/mockDataGenerator';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 
 const BRAZILIAN_STATES = [
   'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG',
@@ -56,6 +63,11 @@ export function PreProposalForm({ onCalculate }: Props) {
     }
   };
 
+  const handleAutoFill = (viability: 'viable' | 'nonViable') => {
+    const mockData = generateMockPreProposalInput(viability);
+    setData(mockData);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onCalculate(data);
@@ -81,6 +93,28 @@ export function PreProposalForm({ onCalculate }: Props) {
           <p className="text-muted-foreground">
             Preencha os dados básicos para receber uma estimativa de investimento
           </p>
+          
+          {/* Botão de Auto-Preenchimento */}
+          <div className="pt-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Wand2 className="h-4 w-4" />
+                  Preencher Automaticamente
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center">
+                <DropdownMenuItem onClick={() => handleAutoFill('viable')} className="gap-2 cursor-pointer">
+                  <ThumbsUp className="h-4 w-4 text-primary" />
+                  <span>Cenário <strong>Viável</strong></span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleAutoFill('nonViable')} className="gap-2 cursor-pointer">
+                  <ThumbsDown className="h-4 w-4 text-destructive" />
+                  <span>Cenário <strong>Não Viável</strong></span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         {/* Dados do Cliente */}
