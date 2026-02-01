@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { PreProposalInput } from '@/types/preProposal';
 import { Card } from './ui/card';
 import { Label } from './ui/label';
@@ -26,6 +26,8 @@ interface Props {
 }
 
 export function PreProposalForm({ onCalculate }: Props) {
+  const isAutoFillingRef = useRef(false);
+
   const [data, setData] = useState<PreProposalInput>({
     clientName: '',
     propertyName: '',
@@ -42,7 +44,13 @@ export function PreProposalForm({ onCalculate }: Props) {
 
   const handleChange = (field: keyof PreProposalInput, value: any) => {
     if (field === 'livestockType') {
-      setData(prev => ({ ...prev, [field]: value, livestockClass: '' }));
+      // IMPORTANTE: alguns componentes (Radix Select) podem disparar onValueChange
+      // também em updates programáticos. Durante auto-fill, NÃO podemos limpar a classe.
+      setData(prev => ({
+        ...prev,
+        [field]: value,
+        livestockClass: isAutoFillingRef.current ? prev.livestockClass : '',
+      }));
     } else {
       setData(prev => ({ ...prev, [field]: value }));
     }
@@ -50,6 +58,8 @@ export function PreProposalForm({ onCalculate }: Props) {
 
   const handleAutoFill = (viability: 'viable' | 'nonViable') => {
     const mockData = generateMockPreProposalInput(viability);
+
+    isAutoFillingRef.current = true;
 
     // Critério indispensável: NUNCA permitir classe vazia/inválida.
     // Validação defensiva - se por algum motivo o tipo vier vazio, forçamos 'suino'.
@@ -67,13 +77,25 @@ export function PreProposalForm({ onCalculate }: Props) {
       ? rawClass 
       : classOptions[0].value;
 
-    console.log('[AutoFill] Type:', type, 'Class:', finalClass);
-
+    // Garantir preenchimento completo (nunca undefined/vazio em campos críticos)
     setData({
-      ...mockData,
+      clientName: (mockData.clientName || '').trim() || 'Cliente Teste',
+      propertyName: (mockData.propertyName || '').trim() || 'Propriedade Teste',
+      state: (mockData.state || '').trim() || 'SP',
       livestockType: type,
       livestockClass: finalClass,
+      livestockQuantity: Number.isFinite(mockData.livestockQuantity) && mockData.livestockQuantity > 0 ? mockData.livestockQuantity : 1,
+      confinementHours: Number.isFinite(mockData.confinementHours) && mockData.confinementHours > 0 ? mockData.confinementHours : 18,
+      monthlyEnergyCost: Number.isFinite(mockData.monthlyEnergyCost) && mockData.monthlyEnergyCost > 0 ? mockData.monthlyEnergyCost : 1000,
+      energyCostPerKwh: Number.isFinite(mockData.energyCostPerKwh) && mockData.energyCostPerKwh > 0 ? mockData.energyCostPerKwh : 0.85,
+      hasThreePhaseGrid: Boolean(mockData.hasThreePhaseGrid),
+      gridDistance: Number.isFinite(mockData.gridDistance) && mockData.gridDistance >= 0 ? mockData.gridDistance : 0,
     });
+
+    // Soltar a trava após a atualização de estado ser aplicada.
+    setTimeout(() => {
+      isAutoFillingRef.current = false;
+    }, 0);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
