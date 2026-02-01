@@ -58,9 +58,11 @@ function generateClientName(): string {
  * Gera um input de pré-proposta simulado
  */
 export function generateMockPreProposalInput(viability: 'viable' | 'nonViable'): PreProposalInput {
-  const livestockType = randomItem(['suino', 'bovino', 'aves'] as const);
+  const livestockTypes: Array<'suino' | 'bovino' | 'aves'> = ['suino', 'bovino', 'aves'];
+  const livestockType = randomItem(livestockTypes);
   const config = LIVESTOCK_CONFIGS[livestockType];
   const quantityRange = config.quantityRange[viability];
+  const livestockClass = randomItem(config.classes);
   
   // Projetos não viáveis têm características que prejudicam a viabilidade
   const isViable = viability === 'viable';
@@ -69,8 +71,8 @@ export function generateMockPreProposalInput(viability: 'viable' | 'nonViable'):
     clientName: generateClientName(),
     propertyName: randomItem(FARM_NAMES),
     state: randomItem(BRAZILIAN_STATES),
-    livestockType,
-    livestockClass: randomItem(config.classes),
+    livestockType: livestockType as 'suino' | 'bovino' | 'aves' | '',
+    livestockClass: livestockClass,
     livestockQuantity: randomInt(quantityRange.min, quantityRange.max),
     confinementHours: isViable ? randomInt(18, 24) : randomInt(6, 12), // Menos horas = menos dejeto
     monthlyEnergyCost: isViable ? randomFloat(3000, 25000) : randomFloat(500, 2000), // Custo baixo = pouca economia
