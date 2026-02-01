@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Calculator, ArrowRight, Wand2, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { generateMockPreProposalInput } from '@/utils/mockDataGenerator';
+import { ensureLivestockClass, LIVESTOCK_CLASSES, type LivestockType } from '@/constants/livestock';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,22 +20,6 @@ const BRAZILIAN_STATES = [
   'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG',
   'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
 ];
-
-const LIVESTOCK_CLASSES = {
-  suino: [
-    { value: 'Matriz', label: 'Matriz' },
-    { value: 'Crechário (Lâmina d\'água)', label: 'Crechário' },
-    { value: 'Terminação/Maraã', label: 'Terminação' }
-  ],
-  bovino: [
-    { value: 'Matriz UPD', label: 'Matriz UPD' },
-    { value: 'Terminação Confinamento', label: 'Terminação Confinamento' }
-  ],
-  aves: [
-    { value: 'Poedeira', label: 'Poedeira' },
-    { value: 'Frango de Corte', label: 'Frango de Corte' }
-  ]
-};
 
 interface Props {
   onCalculate: (data: PreProposalInput) => void;
@@ -65,7 +50,11 @@ export function PreProposalForm({ onCalculate }: Props) {
 
   const handleAutoFill = (viability: 'viable' | 'nonViable') => {
     const mockData = generateMockPreProposalInput(viability);
-    setData(mockData);
+
+    // Critério indispensável: nunca permitir classe vazia/inválida no auto-preenchimento.
+    const type = mockData.livestockType as LivestockType;
+    const ensuredClass = ensureLivestockClass(type, mockData.livestockClass);
+    setData({ ...mockData, livestockClass: ensuredClass });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -184,7 +173,7 @@ export function PreProposalForm({ onCalculate }: Props) {
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
                 <SelectContent>
-                  {data.livestockType && LIVESTOCK_CLASSES[data.livestockType]?.map((cls) => (
+                  {data.livestockType && LIVESTOCK_CLASSES[data.livestockType as LivestockType].map((cls) => (
                     <SelectItem key={cls.value} value={cls.value}>{cls.label}</SelectItem>
                   ))}
                 </SelectContent>

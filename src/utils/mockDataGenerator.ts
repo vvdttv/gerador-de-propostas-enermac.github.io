@@ -1,20 +1,18 @@
 import type { PreProposalInput, PreProposalResult } from '@/types/preProposal';
 import { calculatePreProposal } from './preProposalCalculations';
+import { ensureLivestockClass, getLivestockClassValues, type LivestockType } from '@/constants/livestock';
 
 // Configurações para gerar dados realistas (alinhado com PreProposalForm)
-const LIVESTOCK_CONFIGS = {
+const LIVESTOCK_CONFIGS: Record<LivestockType, { quantityRange: { viable: { min: number; max: number }; nonViable: { min: number; max: number } } }> = {
   suino: {
-    classes: ['Matriz', 'Crechário (Lâmina d\'água)', 'Terminação/Maraã'],
-    quantityRange: { viable: { min: 500, max: 5000 }, nonViable: { min: 50, max: 300 } }
+    quantityRange: { viable: { min: 500, max: 5000 }, nonViable: { min: 50, max: 300 } },
   },
   bovino: {
-    classes: ['Matriz UPD', 'Terminação Confinamento'],
-    quantityRange: { viable: { min: 200, max: 2000 }, nonViable: { min: 20, max: 100 } }
+    quantityRange: { viable: { min: 200, max: 2000 }, nonViable: { min: 20, max: 100 } },
   },
   aves: {
-    classes: ['Poedeira', 'Frango de Corte'],
-    quantityRange: { viable: { min: 50000, max: 200000 }, nonViable: { min: 5000, max: 20000 } }
-  }
+    quantityRange: { viable: { min: 50000, max: 200000 }, nonViable: { min: 5000, max: 20000 } },
+  },
 };
 
 const BRAZILIAN_STATES = [
@@ -58,11 +56,15 @@ function generateClientName(): string {
  * Gera um input de pré-proposta simulado
  */
 export function generateMockPreProposalInput(viability: 'viable' | 'nonViable'): PreProposalInput {
-  const livestockTypes: Array<'suino' | 'bovino' | 'aves'> = ['suino', 'bovino', 'aves'];
+  const livestockTypes: LivestockType[] = ['suino', 'bovino', 'aves'];
   const livestockType = randomItem(livestockTypes);
   const config = LIVESTOCK_CONFIGS[livestockType];
   const quantityRange = config.quantityRange[viability];
-  const livestockClass = randomItem(config.classes);
+
+  // Critério indispensável: classe SEMPRE definida e SEMPRE válida para o tipo.
+  const allowedClasses = getLivestockClassValues(livestockType);
+  const pickedClass = allowedClasses.length > 0 ? randomItem(allowedClasses) : '';
+  const livestockClass = ensureLivestockClass(livestockType, pickedClass);
   
   // Projetos não viáveis têm características que prejudicam a viabilidade
   const isViable = viability === 'viable';
@@ -72,7 +74,7 @@ export function generateMockPreProposalInput(viability: 'viable' | 'nonViable'):
     propertyName: randomItem(FARM_NAMES),
     state: randomItem(BRAZILIAN_STATES),
     livestockType: livestockType as 'suino' | 'bovino' | 'aves' | '',
-    livestockClass: livestockClass,
+    livestockClass,
     livestockQuantity: randomInt(quantityRange.min, quantityRange.max),
     confinementHours: isViable ? randomInt(18, 24) : randomInt(6, 12), // Menos horas = menos dejeto
     monthlyEnergyCost: isViable ? randomFloat(3000, 25000) : randomFloat(500, 2000), // Custo baixo = pouca economia
