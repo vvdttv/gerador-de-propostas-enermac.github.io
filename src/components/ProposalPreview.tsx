@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import { ClientData, TechnicalData, CurrentCosts, FinancialConfig, ProposalCalculations } from '@/types/proposal';
 import { ExpandedCalculationResult } from '@/utils/expandedProposalCalculations';
 import { Card } from './ui/card';
 import { Separator } from './ui/separator';
-import { TrendingUp, DollarSign, Calendar, Zap, Leaf, AlertTriangle, CheckCircle2, User, Lightbulb, FileText, BarChart3 } from 'lucide-react';
+import { TrendingUp, DollarSign, Calendar, Zap, Leaf, AlertTriangle, CheckCircle2, User, Lightbulb, FileText, BarChart3, Save, Download } from 'lucide-react';
 import { Button } from './ui/button';
 import { Alert, AlertDescription } from './ui/alert';
 import { exportToPowerPoint } from '@/utils/pptxExport';
+import { CommentField } from './CommentField';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -21,6 +23,16 @@ import { CapexBreakdown } from './CapexBreakdown';
 import { OpexBreakdown } from './OpexBreakdown';
 import { ProposalExecutiveSummary } from './ProposalExecutiveSummary';
 
+interface ProposalComments {
+  client: string;
+  technicalRoute: string;
+  investment: string;
+  financial: string;
+  benefits: string;
+  indicators: string;
+  general: string;
+}
+
 interface Props {
   client: ClientData;
   technical: TechnicalData;
@@ -31,6 +43,17 @@ interface Props {
 }
 
 export function ProposalPreview({ client, calculations, financial, technical, currentCosts, expandedCalculations }: Props) {
+  const [comments, setComments] = useState<ProposalComments>({
+    client: '',
+    technicalRoute: '',
+    investment: '',
+    financial: '',
+    benefits: '',
+    indicators: '',
+    general: ''
+  });
+  
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -43,6 +66,10 @@ export function ProposalPreview({ client, calculations, financial, technical, cu
       minimumFractionDigits: 1,
       maximumFractionDigits: 1
     }).format(value);
+  };
+
+  const updateComment = (field: keyof ProposalComments, value: string) => {
+    setComments(prev => ({ ...prev, [field]: value }));
   };
 
   const handleExportPDF = () => {
@@ -185,6 +212,13 @@ export function ProposalPreview({ client, calculations, financial, technical, cu
             <p className="font-semibold">{client.consultantEmail}</p>
           </div>
         </div>
+        
+        <CommentField
+          value={comments.client}
+          onChange={(value) => updateComment('client', value)}
+          placeholder="Adicione observações sobre o cliente ou particularidades da propriedade..."
+          label="Comentário sobre o cliente"
+        />
       </Card>
 
       {/* Technological Route */}
@@ -229,6 +263,13 @@ export function ProposalPreview({ client, calculations, financial, technical, cu
             <p className="text-lg font-bold">{formatNumber(calculations.installedPowerKw)} kW</p>
           </div>
         </div>
+        
+        <CommentField
+          value={comments.technicalRoute}
+          onChange={(value) => updateComment('technicalRoute', value)}
+          placeholder="Adicione justificativas técnicas ou observações sobre os equipamentos selecionados..."
+          label="Comentário sobre rota tecnológica"
+        />
       </Card>
 
       {/* Viability Status */}
@@ -452,6 +493,13 @@ export function ProposalPreview({ client, calculations, financial, technical, cu
             )}
           </div>
         </div>
+        
+        <CommentField
+          value={comments.financial}
+          onChange={(value) => updateComment('financial', value)}
+          placeholder="Adicione observações sobre condições de pagamento, taxas especiais ou negociações..."
+          label="Comentário financeiro"
+        />
       </Card>
 
       {/* Benefits */}
@@ -485,6 +533,13 @@ export function ProposalPreview({ client, calculations, financial, technical, cu
             </p>
           </div>
         </div>
+        
+        <CommentField
+          value={comments.benefits}
+          onChange={(value) => updateComment('benefits', value)}
+          placeholder="Adicione observações sobre outros benefícios ou incentivos aplicáveis ao projeto..."
+          label="Comentário sobre benefícios"
+        />
       </Card>
 
       {/* Financial Indicators - TIR, VPL, Payback */}
@@ -497,6 +552,13 @@ export function ProposalPreview({ client, calculations, financial, technical, cu
           <FinancialIndicatorsDisplay 
             cashFlow={expandedCalculations.cashFlow} 
             totalInvestment={expandedCalculations.capex.total} 
+          />
+          
+          <CommentField
+            value={comments.indicators}
+            onChange={(value) => updateComment('indicators', value)}
+            placeholder="Adicione observações sobre os indicadores financeiros ou premissas utilizadas..."
+            label="Comentário sobre indicadores"
           />
         </Card>
       )}
@@ -521,19 +583,51 @@ export function ProposalPreview({ client, calculations, financial, technical, cu
           <CashFlowTable cashFlow={expandedCalculations.cashFlow} />
         </Card>
       )}
-      {/* Action Buttons */}
-      <div className="flex justify-center gap-4 no-print">
-        <Button onClick={handleSaveProposal} variant="outline" size="lg" className="gap-2">
-          Salvar no Banco de Dados
-        </Button>
-        <Button onClick={handleExportPDF} size="lg" className="gap-2">
-          Salvar Proposta (PDF)
-        </Button>
-        <Button onClick={handleExportPowerPoint} variant="secondary" size="lg" className="gap-2">
-          <FileText className="h-4 w-4" />
-          Exportar PowerPoint
-        </Button>
-      </div>
+      {/* General Comments */}
+      <Card className="p-6 no-print">
+        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <FileText className="h-5 w-5 text-primary" />
+          Observações Gerais
+        </h2>
+        <CommentField
+          value={comments.general}
+          onChange={(value) => updateComment('general', value)}
+          placeholder="Adicione observações gerais sobre a proposta, condições especiais, ou informações adicionais para o cliente..."
+          label="Adicionar observação"
+        />
+      </Card>
+
+      {/* Action Buttons - Save Proposal with Multiple Formats */}
+      <Card className="p-6 no-print">
+        <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+          <Save className="h-5 w-5 text-primary" />
+          Salvar Proposta
+        </h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          Salve a proposta no banco de dados e exporte nos formatos desejados.
+        </p>
+        
+        <div className="flex flex-wrap gap-3">
+          <Button onClick={handleSaveProposal} variant="default" size="lg" className="gap-2">
+            <Save className="h-4 w-4" />
+            Salvar no Sistema
+          </Button>
+          
+          <Button onClick={handleExportPDF} variant="outline" size="lg" className="gap-2">
+            <Download className="h-4 w-4" />
+            Baixar PDF
+          </Button>
+          
+          <Button onClick={handleExportPowerPoint} variant="outline" size="lg" className="gap-2">
+            <FileText className="h-4 w-4" />
+            Baixar PowerPoint (.pptx)
+          </Button>
+        </div>
+        
+        <p className="text-xs text-muted-foreground mt-3">
+          💡 Dica: O PDF é gerado através da função de impressão do navegador. O PowerPoint pode ser editado no Microsoft PowerPoint ou Google Slides.
+        </p>
+      </Card>
 
       {/* Footer */}
       <div className="text-center text-sm text-muted-foreground pt-8 border-t print:text-gray-600">
