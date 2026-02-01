@@ -21,9 +21,10 @@ interface Props {
   result: PreProposalResultType;
   input: PreProposalInput;
   onBack: () => void;
+  onSwitchToSimple?: () => void;
 }
 
-export function PreProposalResultView({ result, input, onBack }: Props) {
+export function PreProposalResultView({ result, input, onBack, onSwitchToSimple }: Props) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -333,6 +334,11 @@ export function PreProposalResultView({ result, input, onBack }: Props) {
           <ArrowLeft className="h-4 w-4" />
           Nova Simulação
         </Button>
+        {onSwitchToSimple && (
+          <Button variant="ghost" size="lg" onClick={onSwitchToSimple} className="gap-2">
+            Ver versão simplificada
+          </Button>
+        )}
         <Button size="lg" className="gap-2" onClick={() => window.print()}>
           <TrendingUp className="h-4 w-4" />
           Salvar/Imprimir Pré-Proposta
