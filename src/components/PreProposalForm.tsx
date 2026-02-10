@@ -206,6 +206,7 @@ export function PreProposalForm({ onCalculate }: Props) {
             <div className="space-y-2">
               <Label>Classe *</Label>
               <Select 
+                key={`${data.livestockType}-${data.livestockClass}`}
                 value={data.livestockClass} 
                 onValueChange={(v) => handleChange('livestockClass', v)}
                 disabled={!data.livestockType}
